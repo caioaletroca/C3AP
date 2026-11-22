@@ -1,5 +1,12 @@
 # Changelog
 
+# [0.3.0](https://github.com/caioaletroca/C3AP/compare/v0.2.0...v0.3.0) (2026-11-22)
+
+
+### Features
+
+* Bone Yard gem path check, red path needs Double Jump ([1da2497](https://github.com/caioaletroca/C3AP/commit/1da249778fdf87864daec1f81fdfc11c887c4293))
+
 # [0.2.0](https://github.com/caioaletroca/C3AP/compare/v0.1.0...v0.2.0) (2026-11-22)
 
 
