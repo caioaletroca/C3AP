@@ -116,7 +116,7 @@ LEVELS: tuple[Level, ...] = (
     Level("N. Tropy", 0x04, 0, 3, Kind.BOSS),
     Level("N. Gin", 0x05, 0, 4, Kind.BOSS),
     Level("Dr. N. Cortex", 0x07, 0, 5, Kind.FINAL_BOSS),
-    # Secret warp room (relic-gated) and secret exits: not in v0.1, listed for the level-ID table
+    # Secret warp room: not in v0.1. Opened by the relic count (BizHawk: live, 5 relics per level, the pad at 5)
     Level("Ski Crazed", 0x21, 26, 6, Kind.SECRET),
     Level("Area 51?", 0x25, 27, 6, Kind.SECRET),
     Level("Rings of Power", 0x1F, 28, 6, Kind.SECRET),

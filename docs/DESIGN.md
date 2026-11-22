@@ -86,10 +86,16 @@ Getting a better relic tier straight away also sends the lower tiers.
 **Items:** 25 Crystals, the gems (clear and colored), Relics, the 5 powers (Crash Dash included), and Extra Life /
 Wumpa Fruit as filler (plus the optional No Lives Trap).
 
+**Item style** (decided 2026-11-22): level-specific items, like C2AP: "Toad Village Crystal", "Toad Village Clear
+Gem", "Toad Village Relic". Each item turns on its own level's bit, so the warp room shows exactly what the player
+holds; logic counts the group (any 5 crystals open Tiny, etc.). A level's bit is still held at 0 while its check is
+open there, so the total can be one lower until the next level (accepted).
+
 **Relics and the secret levels** (decided 2026-11-22, like C2AP's secret hub). Secret levels are **not** items: the
-game opens them from the relic count, live (BizHawk), so the Relic items are that count. The client writes one relic
-bit per received Relic item (as sapphires, filled in level order like crystals); the game then opens the secret
-levels by itself. In logic, each secret level needs its vanilla relic count (thresholds: VERIFY). A level's own
+game opens them from the relic count, live (BizHawk), so the Relic items are that count. The client writes the sapphire bit of
+each received level Relic item; the game then opens the secret
+levels by itself. In logic, secret level 26 + k needs 5 × (k + 1) relics: 5, 10, 15, 20, 25 (owner, BizHawk; the center pad
+appears at 5, with the first level). Order assumed to follow the level numbers (26 Ski Crazed … 30 Eggipus Rex). A level's own
 sapphire and gold bits are held at 0 while it is the active level, so the game can award the relic; what it awards
 (sapphire bit, gold bit, both = platinum) gives that level's relic checks, lower tiers included.
 
