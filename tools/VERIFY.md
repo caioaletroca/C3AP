@@ -168,6 +168,11 @@ state already had room 1's buttons built; to check with a reload (round 2f).
 room 2 changes 0x80068FA4 (index 43) **0x13 → 0x14**: ❌ but it changes far too often in play: not the room value. The rest of the diff is positions and camera. ✅ B: 10 crystals written in room 1, then walking to
 room 2 shows only its boss button: a change for another room needs no reload.
 
+**Round 3f (`V` on bits 40-47):** only **bit 40** counts as a gem. So outside the level-ID range (10-39) the only gem
+bits are **0, 1 (Bone Yard path) and 40**, plus colored 58-62. That's 3 second gems for 6 gem paths (and Crash 3
+has 45 gems in all), so some second gems must live inside 10-39 or in another field. Path gems are left unmapped
+(the client ignores them) until each path is cleared in game.
+
 **Round 3e (`V`, pause menu gem count):** of the low bits 0 and 2-9 only **bit 0** counts as a gem (which level is
 unknown); 2-9 are nothing. The "all gems" cheat code sets bytes 0-5 and 7, so the remaining gem bits should be
 40-47: `V` now tests those. The warp room buttons don't show gems.
