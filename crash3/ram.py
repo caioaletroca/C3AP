@@ -70,8 +70,9 @@ CRYSTAL_BIT_BY_LID: dict[int, int] = {}      # filled below: bit = level ID (VER
 CLEAR_GEM_BIT_BY_LID: dict[int, int] = {}    # filled below: bit = level ID (VERIFY)
 PATH_GEM_BIT_BY_LID: dict[int, int | None] = {}
 """Second (gem path) clear gem of Bone Yard, Tomb Time, Dino Might!, Sphynxinator, Gone Tomorrow, Bug Lite: unknown"""
-COLORED_GEM_BITS: dict[str, int | None] = {"Red": None, "Green": None, "Purple": 60, "Blue": None, "Yellow": None}
-"""Bit in GEMS of each colored gem: Purple OK (High Time), the rest unknown (watch GEMS in tools/c3ap_ram_watch.lua)"""
+COLORED_GEM_BITS: dict[str, int | None] = {"Red": 58, "Green": 59, "Purple": 60, "Blue": 61, "Yellow": 62}
+"""Bit in GEMS of each colored gem (OK: pause menu with the J key in tools/c3ap_ram_watch.lua; Purple and Blue also
+won in game). Same order as data.Gem."""
 
 
 def _fill_level_bits() -> None:

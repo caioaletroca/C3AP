@@ -197,10 +197,11 @@ class TestGems(WatcherTest):
         self.step(replace(level, gems=bit))
         self.assertFalse(self.actions.locations)
 
-    def test_unknown_colored_gem_bits_are_left_alone(self) -> None:
-        self.received["Red Gem"] = 1
+    def test_all_received_colored_gems_are_written(self) -> None:
+        for gem in ("Red", "Green", "Purple", "Blue", "Yellow"):
+            self.received[f"{gem} Gem"] = 1
         self.step(HUB)
-        self.assertNotIn(ram.GEMS, self.actions.writes)  # Red's bit is not known yet
+        self.assertEqual(self.written(ram.GEMS), sum(1 << bit for bit in range(58, 63)))
 
     def test_purple_gem_mirrors_and_is_checked_in_the_warp_room(self) -> None:
         bit = 1 << ram.COLORED_GEM_BITS["Purple"]
