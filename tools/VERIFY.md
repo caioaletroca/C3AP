@@ -168,6 +168,11 @@ state already had room 1's buttons built; to check with a reload (round 2f).
 room 2 changes 0x80068FA4 (index 43) **0x13 → 0x14**: ❌ but it changes far too often in play: not the room value. The rest of the diff is positions and camera. ✅ B: 10 crystals written in room 1, then walking to
 room 2 shows only its boss button: a change for another room needs no reload.
 
+**Round R5 (`V`, secret warp room):** ✅ the secret warp room follows the relic count **live**: pressing `V` while
+standing on the center spot spawns the secret platform right away (Crash ends up inside it, one jump gets him on, no
+softlock), and the secret level buttons open after stepping off and on. So the game recomputes secret access from
+the relic count; there is no separate unlock flag to write.
+
 **Round R4 (`T`, sapphire+gold bits on Under Pressure):** ✅ **platinum = both bits** (pause menu and button). The
 owner also wrote relics in the warp room with buttons built and while standing on Under Pressure's button: no
 stuck state; the button's info panel only refreshes after stepping off and on again. Relic writes are safe anywhere.

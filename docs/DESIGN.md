@@ -113,7 +113,7 @@ The Cortex event then needs those items too, and the client only sends the goal 
 
 **Risks to test before building**
 
-1. *How secret levels unlock.* In vanilla they open by relic count, one after another. If the game recomputes them
+1. ✅ BizHawk: *secret levels follow the relic count live* (no separate flag). Original note: In vanilla they open by relic count, one after another. If the game recomputes them
    from the relic count, relics as items and secret levels as items fight over the same number. The fallback is a
    *Progressive Secret Level* item that unlocks them in vanilla order (levels 26 to 30), with the relic count faked
    while in the warp room.
