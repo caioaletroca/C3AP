@@ -94,8 +94,13 @@ open there, so the total can be one lower until the next level (accepted).
 **Relics and the secret levels** (decided 2026-11-22, like C2AP's secret hub). Secret levels are **not** items: the
 game opens them from the relic count, live (BizHawk), so the Relic items are that count. The client writes the sapphire bit of
 each received level Relic item; the game then opens the secret
-levels by itself. In logic, secret level 26 + k needs 5 × (k + 1) relics: 5, 10, 15, 20, 25 (owner, BizHawk; the center pad
-appears at 5, with the first level). Order assumed to follow the level numbers (26 Ski Crazed … 30 Eggipus Rex). A level's own
+levels by itself. The secret warp room's pad slots open at 5, 10, 15, 20 and 25 relics (owner, BizHawk; the center pad appears at 5):
+26 Ski Crazed, 27 Hang 'em High's second entry (to the Yellow Gem), 28 Area 51?, 29 Future Frenzy's second entry (to
+its gem), 30 Rings of Power. Hot Coco (Road Crash's alien sign) and Eggipus Rex (Dino Might!'s Yellow Gem path) are
+secret exits, not relic-gated. Relics need Crash Dash except in the ride levels 3, 5, 8, 14, 17, 18, 22, 24, 26, 28,
+30 (owner); Hot Coco unknown. Secret levels 26, 28 and 30 have no crystal, only clear gems and a relic: Ski Crazed
+one (all boxes), Area 51? and Rings of Power two each (all boxes; first in the race). The other 4 clear gems are
+probably Hot Coco's and Eggipus Rex's (to check). A level's own
 sapphire and gold bits are held at 0 while it is the active level, so the game can award the relic; what it awards
 (sapphire bit, gold bit, both = platinum) gives that level's relic checks, lower tiers included.
 

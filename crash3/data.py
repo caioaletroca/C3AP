@@ -116,12 +116,15 @@ LEVELS: tuple[Level, ...] = (
     Level("N. Tropy", 0x04, 0, 3, Kind.BOSS),
     Level("N. Gin", 0x05, 0, 4, Kind.BOSS),
     Level("Dr. N. Cortex", 0x07, 0, 5, Kind.FINAL_BOSS),
-    # Secret warp room: not in v0.1. Opened by the relic count (BizHawk: live, 5 relics per level, the pad at 5)
+    # Secret warp room: not in v0.1. Its pad slots open with the relic count (BizHawk: live, 5 per slot, the pad at
+    # 5): 26 Ski Crazed (5), 27 = Hang 'em High's second entry, to the Yellow Gem (10), 28 Area 51? (15), 29 = Future
+    # Frenzy's second entry, to its gem (20), 30 Rings of Power (25). Hot Coco (Road Crash's alien sign) and Eggipus Rex
+    # (Dino Might!'s Yellow Gem path, second pterodactyl) are secret exits.
     Level("Ski Crazed", 0x21, 26, 6, Kind.SECRET),
-    Level("Area 51?", 0x25, 27, 6, Kind.SECRET),
-    Level("Rings of Power", 0x1F, 28, 6, Kind.SECRET),
-    Level("Hot Coco", 0x27, 29, 6, Kind.SECRET),
-    Level("Eggipus Rex", 0x26, 30, 6, Kind.SECRET),
+    Level("Area 51?", 0x25, 28, 6, Kind.SECRET),
+    Level("Rings of Power", 0x1F, 30, 6, Kind.SECRET),
+    Level("Hot Coco", 0x27, 31, 6, Kind.SECRET),
+    Level("Eggipus Rex", 0x26, 32, 6, Kind.SECRET),
 )
 
 LEVEL_BY_NAME: dict[str, Level] = {level.name: level for level in LEVELS}
@@ -130,6 +133,15 @@ LEVEL_BY_LID: dict[int, Level] = {level.lid: level for level in LEVELS}
 WARP_ROOMS = 5
 LEVELS_PER_ROOM = 5
 MAIN_LEVELS: tuple[Level, ...] = tuple(level for level in LEVELS if level.kind == Kind.LEVEL)
+RELIC_WITHOUT_DASH: frozenset[int] = frozenset({3, 5, 8, 14, 17, 18, 22, 24, 26, 28, 30})
+"""Level numbers whose time trial (relic) doesn't need Crash Dash: the ride levels (owner). Hot Coco (31) unknown."""
+SECRET_GEMS: dict[int, tuple[str, ...]] = {26: ("Boxes",), 28: ("Boxes", "Race"), 30: ("Race", "Boxes")}
+"""Secret levels 26/28/30 have no crystal: only clear gems (all boxes; first place in the race) and a relic (wiki
+guides). 25 box gems + 6 path gems + these 5 = 36 of the 40 clear gems, so Hot Coco and Eggipus Rex likely hold the
+other 4 (unverified; GEMS bits 0 and 40 are gems from an unknown level)."""
+SECRET_PAD_RELICS: dict[int, int] = {26: 5, 27: 10, 28: 15, 29: 20, 30: 25}
+"""Secret warp room pad slot (vanilla number) -> relics needed (BizHawk). 27 and 29 are second entries to Hang 'em High
+and Future Frenzy."""
 BOSSES: tuple[Level, ...] = tuple(level for level in LEVELS if level.kind == Kind.BOSS)
 FINAL_BOSS: Level = LEVEL_BY_NAME["Dr. N. Cortex"]
 BOSS_BY_ROOM: dict[int, Level] = {level.room: level for level in LEVELS if level.is_boss}
