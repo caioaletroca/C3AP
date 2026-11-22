@@ -168,6 +168,15 @@ state already had room 1's buttons built; to check with a reload (round 2f).
 room 2 changes 0x80068FA4 (index 43) **0x13 → 0x14**: ❌ but it changes far too often in play: not the room value. The rest of the diff is positions and camera. ✅ B: 10 crystals written in room 1, then walking to
 room 2 shows only its boss button: a change for another room needs no reload.
 
+**Round 3c (`J` key, one bit at a time, pause menu):** ✅ colored gems are plain bits in `GEMS`: **56 none, 57 none,
+58 Red, 59 Green, 60 Purple, 61 Blue, 62 Yellow, 63 none**. (Each `J` press clears the previous test bit, which is
+why only one gem showed at a time.)
+
+**Round 3b (Tomb Wader, blue gem):** ✅ Tomb Wader is scene 0x18; finishing it set level-completed bit 24.
+**Blue Gem = `GEMS` bit 61**, again set in the warp room after the level. Guess from vanilla level order (Hang 'em
+High's Yellow, Deep Trouble's Red, High Time's Purple, Tomb Wader's Blue, Flaming Passion's Green): Yellow 58, Red 59,
+Green 62. To check with the `J` key on the pause menu.
+
 **Round 3 (High Time, purple gem; opened with `O` ×3 + `H`):**
 - ✅ `H` (boss field |= 0x78) + 20 crystals opened every warp room. Only Double Jump came along (`POWERS` 1 → 3 in the
   hub), not Death Tornado Spin or Fruit Bazooka: the power rebuild doesn't simply follow bits 4 and 5.
