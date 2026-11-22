@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.1](https://github.com/caioaletroca/C3AP/compare/v0.3.0...v0.3.1) (2026-11-22)
+
+
+### Bug Fixes
+
+* never swap the client's own level request a second time ([67d1699](https://github.com/caioaletroca/C3AP/commit/67d16994fbec528433a6a13eb45a27d1ade5bd90))
+
 # [0.3.0](https://github.com/caioaletroca/C3AP/compare/v0.2.0...v0.3.0) (2026-11-22)
 
 
