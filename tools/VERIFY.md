@@ -168,6 +168,9 @@ state already had room 1's buttons built; to check with a reload (round 2f).
 room 2 changes 0x80068FA4 (index 43) **0x13 → 0x14**: ❌ but it changes far too often in play: not the room value. The rest of the diff is positions and camera. ✅ B: 10 crystals written in room 1, then walking to
 room 2 shows only its boss button: a change for another room needs no reload.
 
+**Round R2 (`T`):** ✅ sapphire field 0x800691B4 (Toad Village bit 11 shows on the pause menu and on its warp room
+button). ❌ platinum is not at 0x800691C4. `T` now tries other candidates one at a time.
+
 **Round R1 (Orient Express time trial, gold relic):** ✅ **gold relic field 0x800691BC, bit = level ID** (bit 10).
 The sapphire field (0x800691B4) stayed 0: only the best tier is stored. Level-completed bit 10 set as usual.
 0x800691DC went 0 → 0x200 (last relic's tier?). 0x800690F8-0x80069100 and 0x80069188-0x80069194 look like times.
