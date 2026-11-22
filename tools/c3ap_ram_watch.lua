@@ -18,8 +18,7 @@
 --   R  reload the warp room (asks the loader for scene 02, like the client could)
 --   N  +1 life      M  +1 Aku Aku mask      (press in the warp room, then enter a level)
 --   T  relic test on/off: Under Pressure gets both its sapphire and gold bits (is that platinum?)
---   V  path gem test: each press sets ONE GEMS bit (40-47); check whether the pause menu gem count goes up.
---      After the last one your gems are put back.
+--   V  +5 sapphire relics per press (next five main levels), for the secret warp room test
 
 memory.usememorydomain("MainRAM")
 
@@ -212,8 +211,6 @@ end
 
 local gem_test_saved = nil   -- colored gem bits before J
 local relic_test_on = false
-local PATH_TEST_BITS = {40, 41, 42, 43, 44, 45, 46, 47}
-local path_test_saved, path_test_i = nil, 0
 
 local actions = {
   U = take_snapshot,
@@ -262,25 +259,29 @@ local actions = {
     relic_test_on = not relic_test_on
   end,
   V = function()
-    -- path gem test: one candidate low GEMS bit at a time (Bone Yard's path gem is bit 1)
-    local word = memory.read_u32_le(GEMS + 4)   -- bits 32-63
-    if path_test_saved == nil then path_test_saved = word path_test_i = 0 end
-    path_test_i = path_test_i + 1
-    local bit = PATH_TEST_BITS[path_test_i]
-    if bit == nil then
-      memory.write_u32_le(GEMS + 4, path_test_saved)
-      log("poke V: done, gems put back")
-      path_test_saved = nil
-    else
-      memory.write_u32_le(GEMS + 4, path_test_saved | (1 << (bit - 32)))
-      log(string.format("poke V: testing GEMS bit %d alone -- does the pause menu gem count go up?", bit))
+    -- +5 sapphire relics (the next five main levels without one), for the secret warp room test
+    local SAPPHIRE = 0x0691B4
+    local added = 0
+    for _, lids in ipairs(ROOM_LEVELS) do
+      for _, lid in ipairs(lids) do
+        local addr = SAPPHIRE + lid // 8
+        if added < 5 and memory.read_u8(addr) & (1 << (lid % 8)) == 0 then
+          memory.write_u8(addr, memory.read_u8(addr) | (1 << (lid % 8)))
+          added = added + 1
+        end
+      end
     end
+    local n = 0
+    for _, b in ipairs(memory.read_bytes_as_array(SAPPHIRE, 16)) do
+      while b > 0 do n = n + (b & 1) b = b >> 1 end
+    end
+    log(string.format("poke V: +%d sapphire relics, %d relic bits set (sapphire + gold fields)", added, n))
   end,
   M = function() add_unit(HEALTH, "masks") end,
 }
 
 local last_word, last_field, held = {}, {}, {}
-log("C3AP RAM watch ready (U/L globals diff, G disc ID, O crystals, B no powers, C all powers, T relic test, V path gem test, H bosses, J gems on/off, R reload hub, Y shuffle, N life, M mask)")
+log("C3AP RAM watch ready (U/L globals diff, G disc ID, O crystals, B no powers, C all powers, T relic test, V +5 relics, H bosses, J gems on/off, R reload hub, Y shuffle, N life, M mask)")
 
 while true do
   local keys = input.get()

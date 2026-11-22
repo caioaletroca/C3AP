@@ -36,9 +36,10 @@ GEMS = 0x80068FB0              # OK: gem bitfield, 8 bytes; set in the warp room
 CRYSTALS = 0x8006912C          # OK: crystal bitfield, 6 bytes; set in the warp room ~200 frames after the level
 POWERS = 0x80069178            # GS: power bitmask (all powers = 0x3F)
 SAPPHIRE_RELICS = 0x800691B4   # OK: sapphire relic bitfield, bit = level ID (pause menu + warp room button)
-GOLD_RELICS = 0x800691BC       # OK: gold relic bitfield, bit = level ID (Orient Express gold = bit 10); only the best
-                               # tier is stored (the sapphire bit stayed 0)
-PLATINUM_RELICS: int | None = None  # unknown: not 0x800691C4 (BizHawk); tools/c3ap_ram_watch.lua T searches
+GOLD_RELICS = 0x800691BC       # OK: gold relic bitfield, 8 bytes, bit = level ID (Orient Express gold = bit 10)
+# OK: a platinum relic is the sapphire bit AND the gold bit of the level (pause menu + warp room button). Only the
+# best tier is stored: sapphire only = Sapphire, gold only = Gold, both = Platinum.
+RELICS_SIZE = 8
 GLOBALS_END = POWERS + 4
 GLOBALS_SIZE = GLOBALS_END - GLOBALS_START
 
