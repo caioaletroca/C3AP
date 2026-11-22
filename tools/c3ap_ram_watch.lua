@@ -17,7 +17,7 @@
 --   J  all five colored gems on / back to what you had (written once, so the game can still add gems)
 --   R  reload the warp room (asks the loader for scene 02, like the client could)
 --   N  +1 life      M  +1 Aku Aku mask      (press in the warp room, then enter a level)
---   T  platinum search: each press tries ONE candidate field for Under Pressure's platinum (bit 14)
+--   T  relic test on/off: Under Pressure gets both its sapphire and gold bits (is that platinum?)
 --   V  path gem test: each press sets ONE GEMS bit (40-47); check whether the pause menu gem count goes up.
 --      After the last one your gems are put back.
 
@@ -211,8 +211,7 @@ local function add_unit(addr, name)
 end
 
 local gem_test_saved = nil   -- colored gem bits before J
-local PLATINUM_CANDIDATES = {0x0691A4, 0x0691AC, 0x0691C0, 0x0691C8, 0x0691CC, 0x0691E0, 0x0691E4}
-local relic_test_i = 0
+local relic_test_on = false
 local PATH_TEST_BITS = {40, 41, 42, 43, 44, 45, 46, 47}
 local path_test_saved, path_test_i = nil, 0
 
@@ -249,21 +248,18 @@ local actions = {
     log("poke R: scene request 02 (reload the warp room)")
   end,
   T = function()
-    -- platinum search: each press puts Under Pressure's bit (14) into ONE candidate field (and takes the previous
-    -- one out). Walk to Under Pressure's button / open the pause menu: does a platinum relic show?
-    if relic_test_i > 0 then
-      local prev = PLATINUM_CANDIDATES[relic_test_i]
-      memory.write_u32_le(prev, memory.read_u32_le(prev) & ~(1 << 14))
-    end
-    relic_test_i = relic_test_i + 1
-    local addr = PLATINUM_CANDIDATES[relic_test_i]
-    if addr == nil then
-      relic_test_i = 0
-      log("poke T: done, all test bits removed")
+    -- platinum = sapphire bit AND gold bit? Toggle Under Pressure (bit 14) in both fields at once.
+    local SAPPHIRE, GOLD = 0x0691B4, 0x0691BC
+    if not relic_test_on then
+      memory.write_u32_le(SAPPHIRE, memory.read_u32_le(SAPPHIRE) | (1 << 14))
+      memory.write_u32_le(GOLD, memory.read_u32_le(GOLD) | (1 << 14))
+      log("poke T: Under Pressure sapphire+gold bits ON -- platinum showing?")
     else
-      memory.write_u32_le(addr, memory.read_u32_le(addr) | (1 << 14))
-      log(string.format("poke T: platinum candidate 0x%08X (Under Pressure bit 14) -- platinum showing?", 0x80000000 + addr))
+      memory.write_u32_le(SAPPHIRE, memory.read_u32_le(SAPPHIRE) & ~(1 << 14))
+      memory.write_u32_le(GOLD, memory.read_u32_le(GOLD) & ~(1 << 14))
+      log("poke T: Under Pressure test bits OFF")
     end
+    relic_test_on = not relic_test_on
   end,
   V = function()
     -- path gem test: one candidate low GEMS bit at a time (Bone Yard's path gem is bit 1)
@@ -284,7 +280,7 @@ local actions = {
 }
 
 local last_word, last_field, held = {}, {}, {}
-log("C3AP RAM watch ready (U/L globals diff, G disc ID, O crystals, B no powers, C all powers, T platinum search, V path gem test, H bosses, J gems on/off, R reload hub, Y shuffle, N life, M mask)")
+log("C3AP RAM watch ready (U/L globals diff, G disc ID, O crystals, B no powers, C all powers, T relic test, V path gem test, H bosses, J gems on/off, R reload hub, Y shuffle, N life, M mask)")
 
 while true do
   local keys = input.get()

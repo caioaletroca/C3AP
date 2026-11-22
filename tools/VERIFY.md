@@ -168,6 +168,11 @@ state already had room 1's buttons built; to check with a reload (round 2f).
 room 2 changes 0x80068FA4 (index 43) **0x13 → 0x14**: ❌ but it changes far too often in play: not the room value. The rest of the diff is positions and camera. ✅ B: 10 crystals written in room 1, then walking to
 room 2 shows only its boss button: a change for another room needs no reload.
 
+**Round R3 (`T` candidates, Under Pressure bit 14):** 0x800691A4, 0x800691AC, 0x800691C8, 0x800691CC, 0x800691E0,
+0x800691E4: nothing. 0x800691C0 bit 14 gave a **gold** relic somewhere: the gold field is 8 bytes (0x800691BC-C3),
+so that was gold bit 46. No separate platinum field found. Hypothesis: platinum = sapphire bit + gold bit (the
+"last relic" value 0x800691DC was 2 for gold: 1 sapphire, 2 gold, 3 = both = platinum?). `T` now tests that.
+
 **Round R2 (`T`):** ✅ sapphire field 0x800691B4 (Toad Village bit 11 shows on the pause menu and on its warp room
 button). ❌ platinum is not at 0x800691C4. `T` now tries other candidates one at a time.
 
