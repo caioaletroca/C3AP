@@ -1,0 +1,22 @@
+{
+  "branches": ["main"],
+  "tagFormat": "v${version}",
+  "plugins": [
+    "@semantic-release/commit-analyzer",
+    "@semantic-release/release-notes-generator",
+    ["@semantic-release/changelog", {"changelogFile": "CHANGELOG.md", "changelogTitle": "# Changelog"}],
+    ["@semantic-release/exec", {
+      "prepareCmd": "python tools/set_version.py ${nextRelease.version} && zip -qr crash3.apworld crash3 -x 'crash3/test/*' '*/__pycache__/*'"
+    }],
+    ["@semantic-release/git", {
+      "assets": ["CHANGELOG.md", "crash3/archipelago.json"],
+      "message": "chore(release): ${nextRelease.version} [skip ci]\n\n${nextRelease.notes}"
+    }],
+    ["@semantic-release/github", {
+      "assets": [{"path": "crash3.apworld", "label": "crash3.apworld"}],
+      "successComment": false,
+      "failComment": false,
+      "releasedLabels": false
+    }]
+  ]
+}

@@ -1,0 +1,79 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ["3.11", "3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: C3AP
+      - uses: actions/checkout@v4
+        with:
+          repository: ArchipelagoMW/Archipelago
+          ref: "0.6.8"
+          path: Archipelago
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Install Archipelago requirements
+        working-directory: Archipelago
+        run: |
+          python -m pip install --upgrade pip "setuptools<81"
+          python -m pip install pytest pytest-subtests
+          python ModuleUpdate.py --yes
+      - name: Link world
+        run: ln -s "$GITHUB_WORKSPACE/C3AP/crash3" Archipelago/worlds/crash3
+      - name: World tests
+        working-directory: Archipelago
+        env:
+          AP_TEST_WORLDS: crash3
+        run: python -m pytest worlds/crash3/test test/general -q
+
+  build:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build apworld
+        run: |
+          cd "$GITHUB_WORKSPACE"
+          zip -r crash3.apworld crash3 -x "crash3/test/*" "*/__pycache__/*"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: crash3.apworld
+          path: crash3.apworld
+
+  release:
+    needs: test
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    concurrency: release
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Semantic release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: >
+          npx --yes
+          -p semantic-release@24.2.3
+          -p @semantic-release/changelog@6.0.3
+          -p @semantic-release/git@10.0.1
+          -p @semantic-release/exec@6.0.3
+          semantic-release

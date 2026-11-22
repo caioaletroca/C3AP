@@ -1,0 +1,21 @@
+__pycache__/
+*.py[cod]
+.venv/
+build/
+dist/
+*.apworld
+.pytest_cache/
+.idea/
+.vscode/
+
+# Never commit game data
+*.bin
+*.cue
+*.iso
+*.img
+*.chd
+*.ecm
+*.pbp
+*.mcr
+*.State
+crash3.apworld
