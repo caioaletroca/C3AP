@@ -17,7 +17,7 @@
 --   J  all five colored gems on / back to what you had (written once, so the game can still add gems)
 --   R  reload the warp room (asks the loader for scene 02, like the client could)
 --   N  +1 life      M  +1 Aku Aku mask      (press in the warp room, then enter a level)
---   T  HOLD boss flag candidate 0x80068F64 at 0 (it gained bit 6 = Tiny's scene); again to release (puts the old value back)
+--   T  relic test on/off: sapphire on Toad Village, platinum(?) on Under Pressure; check the pause menu
 --   V  path gem test: each press sets ONE GEMS bit (40-47); check whether the pause menu gem count goes up.
 --      After the last one your gems are put back.
 
@@ -211,6 +211,7 @@ local function add_unit(addr, name)
 end
 
 local gem_test_saved = nil   -- colored gem bits before J
+local relic_test_on = false
 local PATH_TEST_BITS = {40, 41, 42, 43, 44, 45, 46, 47}
 local path_test_saved, path_test_i = nil, 0
 
@@ -246,7 +247,21 @@ local actions = {
     memory.write_u32_le(SCENE_REQUEST, 0x02)
     log("poke R: scene request 02 (reload the warp room)")
   end,
-  T = function() toggle_hold(0x068F64, 0, "T", "candidate 0x80068F64") end,
+  T = function()
+    -- relic test: Toad Village (bit 11) sapphire, Under Pressure (bit 14) platinum candidate; Orient Express's gold
+    -- (bit 10, 0x800691BC) is real. Written once; press again to clear the two test bits.
+    local SAPPHIRE, PLATINUM = 0x0691B4, 0x0691C4
+    if not relic_test_on then
+      memory.write_u32_le(SAPPHIRE, memory.read_u32_le(SAPPHIRE) | (1 << 11))
+      memory.write_u32_le(PLATINUM, memory.read_u32_le(PLATINUM) | (1 << 14))
+      log("poke T: test relics ON: sapphire Toad Village, platinum(?) Under Pressure -- check the pause menu")
+    else
+      memory.write_u32_le(SAPPHIRE, memory.read_u32_le(SAPPHIRE) & ~(1 << 11))
+      memory.write_u32_le(PLATINUM, memory.read_u32_le(PLATINUM) & ~(1 << 14))
+      log("poke T: test relics OFF")
+    end
+    relic_test_on = not relic_test_on
+  end,
   V = function()
     -- path gem test: one candidate low GEMS bit at a time (Bone Yard's path gem is bit 1)
     local word = memory.read_u32_le(GEMS + 4)   -- bits 32-63
@@ -266,7 +281,7 @@ local actions = {
 }
 
 local last_word, last_field, held = {}, {}, {}
-log("C3AP RAM watch ready (U/L globals diff, G disc ID, O crystals, B no powers, C all powers, T boss flag, V path gem test, H bosses, J gems on/off, R reload hub, Y shuffle, N life, M mask)")
+log("C3AP RAM watch ready (U/L globals diff, G disc ID, O crystals, B no powers, C all powers, T relic test, V path gem test, H bosses, J gems on/off, R reload hub, Y shuffle, N life, M mask)")
 
 while true do
   local keys = input.get()

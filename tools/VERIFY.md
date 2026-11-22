@@ -168,6 +168,11 @@ state already had room 1's buttons built; to check with a reload (round 2f).
 room 2 changes 0x80068FA4 (index 43) **0x13 → 0x14**: ❌ but it changes far too often in play: not the room value. The rest of the diff is positions and camera. ✅ B: 10 crystals written in room 1, then walking to
 room 2 shows only its boss button: a change for another room needs no reload.
 
+**Round R1 (Orient Express time trial, gold relic):** ✅ **gold relic field 0x800691BC, bit = level ID** (bit 10).
+The sapphire field (0x800691B4) stayed 0: only the best tier is stored. Level-completed bit 10 set as usual.
+0x800691DC went 0 → 0x200 (last relic's tier?). 0x800690F8-0x80069100 and 0x80069188-0x80069194 look like times.
+Platinum guessed at 0x800691C4 (8-byte spacing): `T` puts a test sapphire and platinum on the pause menu.
+
 **Round 3f (`V` on bits 40-47):** only **bit 40** counts as a gem. So outside the level-ID range (10-39) the only gem
 bits are **0, 1 (Bone Yard path) and 40**, plus colored 58-62. That's 3 second gems for 6 gem paths (and Crash 3
 has 45 gems in all), so some second gems must live inside 10-39 or in another field. Path gems are left unmapped

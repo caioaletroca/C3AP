@@ -35,7 +35,10 @@ HUB_AREA = 0x80068FA4          # ❌ index 43 was 0x13 in room 1, 0x14 in room 2
 GEMS = 0x80068FB0              # OK: gem bitfield, 8 bytes; set in the warp room ~200 frames after the level
 CRYSTALS = 0x8006912C          # OK: crystal bitfield, 6 bytes; set in the warp room ~200 frames after the level
 POWERS = 0x80069178            # GS: power bitmask (all powers = 0x3F)
-SAPPHIRE_RELICS = 0x800691B4   # GS: sapphire relic bitfield, 6 bytes (not read yet; gold/platinum likely follow)
+SAPPHIRE_RELICS = 0x800691B4   # GS: sapphire relic bitfield, bit = level ID (not read yet)
+GOLD_RELICS = 0x800691BC       # OK: gold relic bitfield, bit = level ID (Orient Express gold = bit 10); only the best
+                               # tier is stored (the sapphire bit stayed 0)
+PLATINUM_RELICS = 0x800691C4   # VERIFY: guessed from the 8-byte spacing
 GLOBALS_END = POWERS + 4
 GLOBALS_SIZE = GLOBALS_END - GLOBALS_START
 
