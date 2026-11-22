@@ -11,6 +11,7 @@
 --   G  search the first 128 KB for the disc ID (SCUS_942.44 / SCUS-94244)
 --   O  +5 crystals: the next warp room's five levels (room 1 first). Powers untouched.
 --   B  HOLD powers at 0 every frame (as the client would); press again to release
+--   C  HOLD all powers on (0x3F, the cheat code's value) every frame; press again to release
 --   Y  shuffle test: once = Toad Village loads Under Pressure, twice = Future Frenzy (cross room), 3x = off
 --   H  mark Tiny, Dingodile, N. Tropy and N. Gin as beaten (boss field bits 6, 3, 4, 5) and reload the hub
 --   J  all five colored gems on / back to what you had (written once, so the game can still add gems)
@@ -216,6 +217,7 @@ local actions = {
   G = find_disc_id,
   O = open_everything,
   B = toggle_powers,
+  C = function() toggle_hold(POWERS, 0x3F, "C", "all powers") end,
   Y = toggle_redirect,
   N = function() add_unit(LIVES, "lives") end,
   H = function()
@@ -250,7 +252,7 @@ local actions = {
 }
 
 local last_word, last_field, held = {}, {}, {}
-log("C3AP RAM watch ready (U/L globals diff, G disc ID, O crystals, B powers, T/V boss flag, H bosses, J gems on/off, R reload hub, Y shuffle, N life, M mask)")
+log("C3AP RAM watch ready (U/L globals diff, G disc ID, O crystals, B no powers, C all powers, T/V boss flag, H bosses, J gems on/off, R reload hub, Y shuffle, N life, M mask)")
 
 while true do
   local keys = input.get()
