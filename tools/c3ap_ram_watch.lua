@@ -13,8 +13,7 @@
 --   B  HOLD powers at 0 every frame (as the client would); press again to release
 --   Y  shuffle test: once = Toad Village loads Under Pressure, twice = Future Frenzy (cross room), 3x = off
 --   H  mark Tiny, Dingodile, N. Tropy and N. Gin as beaten (boss field bits 6, 3, 4, 5) and reload the hub
---   J  colored gem bit test: each press shows ONE candidate bit (56-63, skipping ones you own); check the pause
---      menu to see which gem appears. After the last one, your real gems are put back.
+--   J  all five colored gems on / back to what you had (written once, so the game can still add gems)
 --   R  reload the warp room (asks the loader for scene 02, like the client could)
 --   N  +1 life      M  +1 Aku Aku mask      (press in the warp room, then enter a level)
 --   T  HOLD boss flag candidate 0x80068F64 at 0 (it gained bit 6 = Tiny's scene); again to release (puts the old value back)
@@ -209,7 +208,7 @@ local function add_unit(addr, name)
   log(string.format("poke: %s +1 (now %08X)", name, memory.read_u32_le(addr)))
 end
 
-local gem_test_saved, gem_test_bit = nil, 55
+local gem_test_saved = nil   -- colored gem bits before J
 
 local actions = {
   U = take_snapshot,
@@ -226,17 +225,16 @@ local actions = {
     log(string.format("poke H: boss field %08X -> %08X (4 bosses beaten), reloading the hub", was, was | 0x78))
   end,
   J = function()
-    local addr = GEMS + 7               -- bits 56-63 (Purple 60, Blue 61)
-    if gem_test_saved == nil then gem_test_saved = memory.read_u8(addr) gem_test_bit = 55 end
-    repeat gem_test_bit = gem_test_bit + 1
-    until gem_test_bit > 63 or (gem_test_saved >> (gem_test_bit - 56)) & 1 == 0
-    if gem_test_bit > 63 then
-      memory.write_u8(addr, gem_test_saved)
-      log("poke J: done, real gems put back")
-      gem_test_saved = nil
+    local addr = GEMS + 7               -- bits 56-63: Red 58, Green 59, Purple 60, Blue 61, Yellow 62
+    local now = memory.read_u8(addr)
+    if gem_test_saved == nil then
+      gem_test_saved = now & 0x7C
+      memory.write_u8(addr, now | 0x7C)
+      log("poke J: all five colored gems ON (gem paths open on the next level load); press J again for off")
     else
-      memory.write_u8(addr, gem_test_saved | (1 << (gem_test_bit - 56)))
-      log(string.format("poke J: testing GEMS bit %d -- open the pause menu: which gem shows up?", gem_test_bit))
+      memory.write_u8(addr, (now & ~0x7C) | gem_test_saved)
+      log("poke J: colored gems back to what you had")
+      gem_test_saved = nil
     end
   end,
   R = function()
@@ -252,7 +250,7 @@ local actions = {
 }
 
 local last_word, last_field, held = {}, {}, {}
-log("C3AP RAM watch ready (U/L globals diff, G disc ID, O crystals, B powers, T/V boss flag, H bosses, J gem test, R reload hub, Y shuffle, N life, M mask)")
+log("C3AP RAM watch ready (U/L globals diff, G disc ID, O crystals, B powers, T/V boss flag, H bosses, J gems on/off, R reload hub, Y shuffle, N life, M mask)")
 
 while true do
   local keys = input.get()
