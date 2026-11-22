@@ -1,5 +1,12 @@
 # Changelog
 
+# [0.2.0](https://github.com/caioaletroca/C3AP/compare/v0.1.0...v0.2.0) (2026-11-22)
+
+
+### Features
+
+* map every colored gem bit ([9dff3b9](https://github.com/caioaletroca/C3AP/commit/9dff3b9b2ede975a4ced8a7fad8403858b9bdb4d))
+
 # [0.1.0](https://github.com/caioaletroca/C3AP/compare/v0.0.0...v0.1.0) (2026-11-22)
 
 
