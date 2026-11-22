@@ -287,6 +287,19 @@ class TestLevelShuffle(WatcherTest):
         self.assertEqual(self.written(ram.SCENE_REQUEST), lid("Under Pressure"))
         self.assertEqual(self.actions.guards[ram.SCENE_REQUEST][0], lid("Toad Village"))
 
+    def test_own_request_is_not_swapped_again(self) -> None:
+        self.step(replace(HUB, scene_request=lid("Toad Village")))
+        self.step(replace(HUB, scene_request=lid("Under Pressure")))  # our own write, still in SCENE_REQUEST
+        self.assertNotIn(ram.SCENE_REQUEST, self.actions.writes, "Under Pressure's button is shuffled too")
+
+    def test_request_after_intro_cutscene_is_swapped(self) -> None:
+        # First visit: warp room -> scene 3A (intro) -> the level's request comes from the cutscene (BizHawk, round 4)
+        cutscene = replace(HUB, level=ram.LID_TRANSITION, scene_id=ram.LID_TRANSITION)
+        self.step(HUB)
+        self.step(cutscene)
+        self.step(replace(cutscene, scene_request=lid("Toad Village")))
+        self.assertEqual(self.written(ram.SCENE_REQUEST), lid("Under Pressure"))
+
     def test_missed_request_reloads(self) -> None:
         self.step(HUB)
         self.step(self.in_level("Toad Village"))

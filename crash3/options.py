@@ -16,11 +16,10 @@ class GemChecks(DefaultOnToggle):
 
 
 class LevelShuffle(Toggle):
-    """EXPERIMENTAL, not yet tested in an emulator. Shuffle which level each warp room button leads to.
+    """Shuffle which level each warp room button leads to.
 
-    Levels are shuffled among the buttons of their own warp room; bosses keep their buttons. The client redirects the
-    game's level request, which the decompilation warns can hang the game if the requested level's data isn't what the
-    loader expects.
+    Levels are shuffled among the buttons of their own warp room; bosses keep their buttons. The client swaps the
+    game's level request for the shuffled level (tested in BizHawk, including across warp rooms).
     """
 
     display_name = "Level Shuffle"

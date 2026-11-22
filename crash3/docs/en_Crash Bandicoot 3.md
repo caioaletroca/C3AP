@@ -8,7 +8,7 @@
   the power you get comes from wherever its item was found. Crash Dash (Cortex's reward) stays vanilla.
 - **Colored gems** (Red, Green, Purple, Blue, Yellow) are items, when *Gem Checks* is on. Their gem paths open once you
   receive them.
-- **Level shuffle** (optional, experimental) changes which level each warp room button leads to, within the same room.
+- **Level shuffle** (optional) changes which level each warp room button leads to, within the same room.
 - Leftover slots are filled with extra lives and Aku Aku masks. With *Trap Chance*, some of them are *No Lives Traps*
   instead: you play your next level with 0 lives (one death is a game over). Back in the warp room you get your lives
   back, plus any you picked up; a game over ends the trap without giving them back.

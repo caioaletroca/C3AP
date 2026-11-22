@@ -261,16 +261,16 @@ class Watcher:
             actions.guards[address] = (current, size)
 
     def _redirect_level(self, snap: ram.Snapshot, actions: Actions) -> None:
-        """Level shuffle (EXPERIMENTAL): load the shuffled level instead of the button's vanilla one.
+        """Level shuffle: load the shuffled level instead of the button's vanilla one.
 
-        The button's request usually sits in SCENE_REQUEST for a single frame, so it is mostly missed; then the vanilla
+        The button's request sits in SCENE_REQUEST for 3 frames, so it can be missed; then the vanilla
         level loads and asking for the shuffled one replaces it. A level we asked for ourselves is never redirected.
         """
         if not self.button_target:
             return
-        if snap.in_hub:
+        if snap.in_hub and snap.scene_request == ram.NO_SCENE:
             self.redirected_to = None
-        if snap.scene_request in self.button_target:
+        if snap.scene_request in self.button_target and snap.scene_request != self.redirected_to:
             target = self.button_target[snap.scene_request]
             actions.writes[ram.SCENE_REQUEST] = (target, 4)
             actions.guards[ram.SCENE_REQUEST] = (snap.scene_request, 4)

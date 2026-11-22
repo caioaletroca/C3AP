@@ -60,8 +60,8 @@ Same scheme as C1AP, which has been verified live there.
 - **Death Link** sends when the respawn counter goes up inside the same level.
 - **Level shuffle** watches `SCENE_REQUEST` (0x80060AC0, -1 when idle). A button's request is swapped for the
   shuffled level if caught; if missed, the vanilla level loads and the client requests the shuffled one right away.
-  This worked in Crash 1 (`next_lid`). The decompilation warns that a scene whose data does not match the loader can
-  hang, so shuffle is off by default until VERIFY round 4 passes.
+  ✅ BizHawk round 4: swaps within a room and across rooms load with no hang, and leaving the level returns
+  to the button's room. Still off by default, as an option.
 
 ## Target design (v1.0, C2AP style)
 
@@ -135,7 +135,7 @@ The Cortex event then needs those items too, and the client only sends the goal 
 2. ~~*Detecting a normal level exit.*~~ ✅ the "level completed" field 0x80068F64 (bit = level ID).
 3. ✅ *Relic bits and tiers:* sapphire 0x800691B4, gold 0x800691BC (8 bytes each, bit = level ID), platinum =
    both bits.
-4. *Cross-room level swap.* Loading a room 4 or 5 level from a room 1 button must not hang the game.
+4. ✅ *Cross-room level swap.* Future Frenzy loaded from Toad Village's button, no hang; leaving it returns to room 1.
 5. *Crash Dash bit.* Masking it so beating Cortex can still be seen, while the item controls it.
 6. *Warp room state follows the crystal total.* At 5 crystals, warp room 1 hides its level buttons until Tiny is
    beaten (a separate "boss beaten" flag). So received crystals can hide unplayed levels until that room's boss is

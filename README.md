@@ -16,7 +16,7 @@ yourself), and the crystals, powers and colored gems come back to you as items.
 - **Crystals.** Each warp room's boss opens with five more crystals, as in the game, but the crystals are items.
 - **Powers.** Super Body Slam, Double Jump, Death Tornado Spin and Fruit Bazooka are items. Beating a boss is a check.
 - **Colored gems** (with *Gem Checks*). Red, Green, Purple, Blue and Yellow are items that open their gem paths.
-- **Level shuffle** (optional, experimental). Changes which level each warp room button leads to, within its room.
+- **Level shuffle** (optional). Changes which level each warp room button leads to, within its room.
 - **Filler.** Extra lives and Aku Aku masks.
 - **Traps** (optional). *No Lives Trap*: you play your next level with 0 lives, then they come back in the warp room.
 
@@ -32,7 +32,7 @@ Defeat Dr. N. Cortex.
 | Option | Values | Default |
 |---|---|---|
 | `gem_checks` | `true` / `false`: gems are locations, colored gems are items | `true` |
-| `level_shuffle` | `true` / `false` (experimental) | `false` |
+| `level_shuffle` | `true` / `false` | `false` |
 | `trap_chance` | 0-100: % of filler replaced by a No Lives Trap | 0 |
 | `death_link` | `true` / `false` | `false` |
 

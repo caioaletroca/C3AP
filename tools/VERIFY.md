@@ -97,13 +97,13 @@ client, which never writes the boss field.
 | 16 | In the warp room, set the Red bit by hand, enter Bone Yard | the red gem path platform appears | |
 | 17 | Bone Yard's red path clear gem | a second Bone Yard `GEMS` bit: note it (`PATH_GEM_BIT_BY_LID`) | |
 
-## Round 4: level shuffle (EXPERIMENTAL)
+## Round 4: level shuffle ✅
 
 | # | Test | Expect | Result |
 |---|---|---|---|
-| 18 | In warp room 1 press `Y`, then enter Toad Village's button | Under Pressure loads instead, no hang. Log says "caught" or "missed" | |
-| 19 | Finish (or exit) that Under Pressure | back in warp room 1 at Toad Village's button, no crash | |
-| 20 | Repeat 18 a few times | never hangs. **A hang means level shuffle must stay off.** | |
+| 18 | In warp room 1 press `Y`, then enter Toad Village's button | Under Pressure loads instead, no hang. Log says "caught" or "missed" | ✅ caught every time |
+| 19 | Finish (or exit) that Under Pressure | back in warp room 1 at Toad Village's button, no crash | ✅ |
+| 20 | Repeat 18 a few times | never hangs. **A hang means level shuffle must stay off.** | ✅ no hang, no glitch |
 
 ## Round 5: lives and game over (for the trap)
 
@@ -117,7 +117,7 @@ client, which never writes the boss field.
 
 | # | Test | Expect | Result |
 |---|---|---|---|
-| 24 | Press `Y` **twice** (cross-room test), enter Toad Village's button | Future Frenzy (warp room 4) loads, no hang; finish or exit it and land back in room 1 | |
+| 24 | Press `Y` **twice** (cross-room test), enter Toad Village's button | Future Frenzy (warp room 4) loads, no hang; finish or exit it and land back in room 1 | ✅ |
 | 25 | `U` in a level, finish it normally, `L` back in the warp room | which globals changed on a normal exit (a "level done" bit or counter?) | |
 | 26 | `U` in a level, exit through the pause menu, `L` | compare with test 25: the exit check must not fire here | |
 | 27 | Win a time trial relic (Sapphire is enough) | which globals changed (`U` before the run, `L` after): the relic field and how the tier is stored | |
@@ -266,3 +266,11 @@ platinum likely follow.
 - ✅ 8: lives and masks written in the warp room carry into the next level (the warp room HUD shows them). Writes
   inside a level are lost: the level writes lives, masks and fruit back on exit (normal or pause menu).
   Fruit is index 26 (0x80068F60).
+
+**Round 4 + test 24 (level shuffle, 2026-11-22):** ✅ every armed entry was caught and swapped (the test key arms one
+entry at a time). Toad Village's button loaded Under Pressure (same room) and Future Frenzy (warp room 4, cross room)
+with no hang or glitch; leaving either level returned Crash to warp room 1. On the first visit the button requests
+scene 3A (intro cutscene) and the level's request comes from the cutscene, ~380 frames later: it is caught the same
+way. Leaving a level goes level -> 3A -> 02 (normal exit and pause menu alike when the level has an outro).
+Client fix from reading the log: its own swapped request is no longer swapped a second time when the target level's
+button is shuffled too.
