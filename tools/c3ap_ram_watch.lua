@@ -18,7 +18,8 @@
 --   R  reload the warp room (asks the loader for scene 02, like the client could)
 --   N  +1 life      M  +1 Aku Aku mask      (press in the warp room, then enter a level)
 --   T  HOLD boss flag candidate 0x80068F64 at 0 (it gained bit 6 = Tiny's scene); again to release (puts the old value back)
---   V  HOLD candidates 0x80069010 and 0x800691F0 at 0; again to release
+--   V  path gem test: each press sets ONE low GEMS bit (0, 2-9); check which level shows a second gem.
+--      After the last one your gems are put back.
 
 memory.usememorydomain("MainRAM")
 
@@ -210,6 +211,8 @@ local function add_unit(addr, name)
 end
 
 local gem_test_saved = nil   -- colored gem bits before J
+local PATH_TEST_BITS = {0, 2, 3, 4, 5, 6, 7, 8, 9}
+local path_test_saved, path_test_i = nil, 0
 
 local actions = {
   U = take_snapshot,
@@ -245,14 +248,25 @@ local actions = {
   end,
   T = function() toggle_hold(0x068F64, 0, "T", "candidate 0x80068F64") end,
   V = function()
-    toggle_hold(0x069010, 0, "V", "candidate 0x80069010")
-    toggle_hold(0x0691F0, 0, "V", "candidate 0x800691F0")
+    -- path gem test: one candidate low GEMS bit at a time (Bone Yard's path gem is bit 1)
+    local word = memory.read_u32_le(GEMS)
+    if path_test_saved == nil then path_test_saved = word path_test_i = 0 end
+    path_test_i = path_test_i + 1
+    local bit = PATH_TEST_BITS[path_test_i]
+    if bit == nil then
+      memory.write_u32_le(GEMS, path_test_saved)
+      log("poke V: done, gems put back")
+      path_test_saved = nil
+    else
+      memory.write_u32_le(GEMS, path_test_saved | (1 << bit))
+      log(string.format("poke V: testing GEMS bit %d alone -- which level shows a second gem?", bit))
+    end
   end,
   M = function() add_unit(HEALTH, "masks") end,
 }
 
 local last_word, last_field, held = {}, {}, {}
-log("C3AP RAM watch ready (U/L globals diff, G disc ID, O crystals, B no powers, C all powers, T/V boss flag, H bosses, J gems on/off, R reload hub, Y shuffle, N life, M mask)")
+log("C3AP RAM watch ready (U/L globals diff, G disc ID, O crystals, B no powers, C all powers, T boss flag, V path gem test, H bosses, J gems on/off, R reload hub, Y shuffle, N life, M mask)")
 
 while true do
   local keys = input.get()

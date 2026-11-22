@@ -168,6 +168,10 @@ state already had room 1's buttons built; to check with a reload (round 2f).
 room 2 changes 0x80068FA4 (index 43) **0x13 → 0x14**: ❌ but it changes far too often in play: not the room value. The rest of the diff is positions and camera. ✅ B: 10 crystals written in room 1, then walking to
 room 2 shows only its boss button: a change for another room needs no reload.
 
+**Round 3d (Bone Yard red path, with `J` all gems and `C` all powers):** ✅ the red path needs Double Jump.
+**Bone Yard's path gem = `GEMS` bit 1**, set in the warp room after the level. Level-completed bit 12 set. The other
+path gems are probably low bits too (0, 2-9): the `V` key tests them one at a time.
+
 **Round 3c (`J` key, one bit at a time, pause menu):** ✅ colored gems are plain bits in `GEMS`: **56 none, 57 none,
 58 Red, 59 Green, 60 Purple, 61 Blue, 62 Yellow, 63 none**. (Each `J` press clears the previous test bit, which is
 why only one gem showed at a time.)
