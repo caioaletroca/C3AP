@@ -83,8 +83,15 @@ VERIFY rounds 6-7.
 
 Getting a better relic tier straight away also sends the lower tiers.
 
-**Items:** 25 Crystals, the gems (clear and colored), relics, the 5 powers (Crash Dash included), the 5 secret levels,
-and Extra Life / Wumpa Fruit as filler (plus the optional No Lives Trap).
+**Items:** 25 Crystals, the gems (clear and colored), Relics, the 5 powers (Crash Dash included), and Extra Life /
+Wumpa Fruit as filler (plus the optional No Lives Trap).
+
+**Relics and the secret levels** (decided 2026-11-22, like C2AP's secret hub). Secret levels are **not** items: the
+game opens them from the relic count, live (BizHawk), so the Relic items are that count. The client writes one relic
+bit per received Relic item (as sapphires, filled in level order like crystals); the game then opens the secret
+levels by itself. In logic, each secret level needs its vanilla relic count (thresholds: VERIFY). A level's own
+sapphire and gold bits are held at 0 while it is the active level, so the game can award the relic; what it awards
+(sapphire bit, gold bit, both = platinum) gives that level's relic checks, lower tiers included.
 
 **Goal** (`goal` option). Beating Dr. N. Cortex is always required. Gems and relics are items, so the extra goals
 count received items (no RAM needed):
@@ -109,16 +116,14 @@ The Cortex event then needs those items too, and the client only sends the goal 
     Tornado Spin for a bonus round gap, and some warp room 5 levels need Fruit Bazooka for boxes out of reach.
     Speedrun tricks are never required.
   - **Relics:** need Crash Dash, except in the vehicle levels. The owner will provide the list of no-boots levels.
-- Secret levels need their item.
+- Secret levels need their vanilla relic count of Relic items.
 
 **Risks to test before building**
 
-1. ✅ BizHawk: *secret levels follow the relic count live* (no separate flag). Original note: In vanilla they open by relic count, one after another. If the game recomputes them
-   from the relic count, relics as items and secret levels as items fight over the same number. The fallback is a
-   *Progressive Secret Level* item that unlocks them in vanilla order (levels 26 to 30), with the relic count faked
-   while in the warp room.
+1. ✅ *Secret levels follow the relic count live* (no separate flag): Relic items drive them (see above).
 2. ~~*Detecting a normal level exit.*~~ ✅ the "level completed" field 0x80068F64 (bit = level ID).
-3. *Relic bits and tiers* in the save data.
+3. ✅ *Relic bits and tiers:* sapphire 0x800691B4, gold 0x800691BC (8 bytes each, bit = level ID), platinum =
+   both bits.
 4. *Cross-room level swap.* Loading a room 4 or 5 level from a room 1 button must not hang the game.
 5. *Crash Dash bit.* Masking it so beating Cortex can still be seen, while the item controls it.
 6. *Warp room state follows the crystal total.* At 5 crystals, warp room 1 hides its level buttons until Tiny is
