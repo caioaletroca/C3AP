@@ -14,7 +14,8 @@ Ownership rules (the same scheme that works in Crash 1, see docs/DESIGN.md):
   so the game spawns the crystal and can award it; the bit then going 0 -> 1 is the check.
 - The game sets the crystal and gem bits back in the warp room, about 200 frames after the level (OK, BizHawk). So
   the last level played stays "active" (masked and watched) through the warp room until another level loads.
-- Clear gem bits are never written: the active level's clear gem bit appearing is that level's clear gem check.
+- Clear gem bits are never written: the active level's clear gem bit (or its gem path gem's bit) appearing is that
+  check.
 - With level shuffle, a warp room button's level request is swapped for the shuffled level.
 - A warp room builds its buttons from the crystal total when Crash walks up to it; changing the total under a built
   room leaves it with no buttons at all (BizHawk). Crossing 5r only changes warp room r. So in the hub, a change that
@@ -178,9 +179,12 @@ class Watcher:
 
         # Clear gems: the level's own bit appearing (never written by the client).
         if self.slot.gem_checks and self.level.kind == Kind.LEVEL:
-            bit = ram.CLEAR_GEM_BIT_BY_LID.get(self.level.lid)
-            if bit is not None and not previous.gems & (1 << bit) and snap.gems & (1 << bit):
-                actions.locations.add(location_name_to_id[self.level.clear_gem_location])
+            gem_bits = [(ram.CLEAR_GEM_BIT_BY_LID.get(self.level.lid), self.level.clear_gem_location)]
+            if self.level.path_gem:
+                gem_bits.append((ram.PATH_GEM_BIT_BY_LID.get(self.level.lid), self.level.path_gem_location))
+            for bit, name in gem_bits:
+                if bit is not None and not previous.gems & (1 << bit) and snap.gems & (1 << bit):
+                    actions.locations.add(location_name_to_id[name])
 
     # Writes
 

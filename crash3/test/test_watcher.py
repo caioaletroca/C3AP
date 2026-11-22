@@ -190,6 +190,13 @@ class TestGems(WatcherTest):
         self.step(replace(HUB, gems=bit))
         self.assertEqual(self.actions.locations, {loc("Toad Village - Clear Gem")})
 
+    def test_gem_path_gem_is_checked(self) -> None:
+        # BizHawk: Bone Yard's red path gem set GEMS bit 1 back in the warp room.
+        self.step(self.in_level("Bone Yard"))
+        self.step(HUB)
+        self.step(replace(HUB, gems=1 << 1))
+        self.assertEqual(self.actions.locations, {loc("Bone Yard - Gem Path Clear Gem")})
+
     def test_no_gem_checks(self) -> None:
         self.watcher = make_watcher(gem_checks=False)
         bit = 1 << ram.CLEAR_GEM_BIT_BY_LID[lid("Under Pressure")]

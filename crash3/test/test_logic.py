@@ -22,6 +22,8 @@ class TestRoomGates(Crash3TestBase):
     def test_gem_path_needs_its_color(self) -> None:
         self.assertFalse(self.can_reach_location("Bone Yard - Gem Path Clear Gem"))
         self.collect_by_name("Red Gem")
+        self.assertFalse(self.can_reach_location("Bone Yard - Gem Path Clear Gem"), "the red path needs Double Jump")
+        self.collect_by_name("Double Jump")
         self.assertTrue(self.can_reach_location("Bone Yard - Gem Path Clear Gem"))
 
     def test_bug_lite_path_needs_every_color(self) -> None:

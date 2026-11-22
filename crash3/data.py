@@ -48,6 +48,8 @@ class Level:
     """Colored gems needed for this level's second (gem path) clear gem; empty if it has none"""
     colored_gem: Gem | None = None
     """The colored gem found in this level"""
+    path_powers: tuple[str, ...] = ()
+    """Powers the gem path needs beyond what the warp room already requires (owner, BizHawk)"""
 
     @property
     def is_boss(self) -> bool:
@@ -82,7 +84,7 @@ LEVELS: tuple[Level, ...] = (
     Level("Toad Village", 0x0B, 1, 1),
     Level("Under Pressure", 0x0E, 2, 1),
     Level("Orient Express", 0x0A, 3, 1),
-    Level("Bone Yard", 0x0C, 4, 1, path_gem=(Gem.RED,)),
+    Level("Bone Yard", 0x0C, 4, 1, path_gem=(Gem.RED,), path_powers=("Double Jump",)),
     Level("Makin' Waves", 0x19, 5, 1),
     # Warp room 2
     Level("Gee Wiz", 0x0F, 6, 2),

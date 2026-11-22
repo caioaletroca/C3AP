@@ -123,7 +123,8 @@ class Crash3World(World):
         self.set_rule(self.add_location(region, level.clear_gem_location), needs)
         if level.path_gem:
             self.set_rule(self.add_location(region, level.path_gem_location),
-                          needs & HasAll(*(gem.item_name for gem in level.path_gem)))
+                          needs & HasAll(*(gem.item_name for gem in level.path_gem))
+                          & (HasAll(*level.path_powers) if level.path_powers and self.powers_in_logic else True_()))
         if level.colored_gem is not None:
             self.set_rule(self.add_location(region, level.colored_gem_location), needs)
 

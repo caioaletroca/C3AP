@@ -69,7 +69,8 @@ MAX_LIVES = 99 * UNIT
 CRYSTAL_BIT_BY_LID: dict[int, int] = {}      # filled below: bit = level ID (VERIFY)
 CLEAR_GEM_BIT_BY_LID: dict[int, int] = {}    # filled below: bit = level ID (VERIFY)
 PATH_GEM_BIT_BY_LID: dict[int, int | None] = {}
-"""Second (gem path) clear gem of Bone Yard, Tomb Time, Dino Might!, Sphynxinator, Gone Tomorrow, Bug Lite: unknown"""
+"""Second (gem path) clear gem: Bone Yard = bit 1 (OK, won in game); Tomb Time, Dino Might!, Sphynxinator,
+Gone Tomorrow, Bug Lite unknown (low bits, test with the V key)"""
 COLORED_GEM_BITS: dict[str, int | None] = {"Red": 58, "Green": 59, "Purple": 60, "Blue": 61, "Yellow": 62}
 """Bit in GEMS of each colored gem (OK: pause menu with the J key in tools/c3ap_ram_watch.lua; Purple and Blue also
 won in game). Same order as data.Gem."""
@@ -82,6 +83,7 @@ def _fill_level_bits() -> None:
         CLEAR_GEM_BIT_BY_LID[level.lid] = level.lid
     for level in PATH_GEM_LEVELS:
         PATH_GEM_BIT_BY_LID[level.lid] = None
+    PATH_GEM_BIT_BY_LID[0x0C] = 1  # Bone Yard (OK)
 
 
 _fill_level_bits()
