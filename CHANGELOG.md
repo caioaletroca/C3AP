@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.4](https://github.com/caioaletroca/C3AP/compare/v0.5.3...v0.5.4) (2026-11-23)
+
+
+### Bug Fixes
+
+* don't forget a level redirect before its level has loaded ([b110b84](https://github.com/caioaletroca/C3AP/commit/b110b84d21c5b8e14bf8be03357ebe6299420b41))
+
 ## [0.5.3](https://github.com/caioaletroca/C3AP/compare/v0.5.2...v0.5.3) (2026-11-23)
 
 
