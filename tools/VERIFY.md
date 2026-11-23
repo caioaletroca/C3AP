@@ -139,7 +139,7 @@ Generate a seed with the default options plus `level_shuffle: all_rooms`, start 
 | 36 | Hold 5 Relic items | secret warp room pad appears; Ski Crazed's slot opens | |
 | 37 | Enter secret pad 27 or 29 with level shuffle on | the secret route of Hang 'em High / Future Frenzy loads, not the shuffled level (**the client may redirect it**) | ✅ pad 27 (after a fix) |
 | 38 | Win a gem path gem other than Bone Yard's, or a race gem | the client logs "Learned a gem bit"; report the bit | |
-| 39 | Beat Cortex | the goal is sent (with the goal items held) | |
+| 39 | Beat Cortex | the goal is sent (with the goal items held) | ✅ |
 | 40 | Hit Road Crash's alien sign | "Hot Coco - Entered" is sent | ✅ |
 | 41 | Break every box in Hot Coco and finish | "Hot Coco - Clear Gem" and "Hot Coco - Exit" are sent (bits 39) | |
 | 42 | Take Dino Might!'s Yellow Gem path to Eggipus Rex and finish | "Eggipus Rex - Entered", "- Clear Gem", "- Exit" (bits 38) | ✅ |
@@ -163,6 +163,11 @@ Generate a seed with the default options plus `level_shuffle: all_rooms`, start 
 - 30: Crash Dash as an item.
 
 ## Results log
+
+**Round 7e (Cortex, 25 crystal items):** ✅ Cortex's button opened; beating him set bit 7 of 0x80068F64 and the goal
+was sent ("has completed their goal", then the auto release). No other check was sent before the goal. Beating him
+also makes the game set every power (0x3F) and every gem bit it knows (clear gems 10-37 and bit 1, colored 58-61) just
+before the ending (scene 0x29); harmless, since the goal is already sent.
 
 **Round 7d (ID 0x20+, Flaming Passion behind Tell No Tales's button):** ✅ the request was swapped during the intro
 cutscene (0x0D -> 0x22), 1F0 cleared on arrival; after a normal finish the game set bit 13 (Tell No Tales) and the
