@@ -1,5 +1,20 @@
 # Changelog
 
+# [1.0.0](https://github.com/caioaletroca/C3AP/compare/v0.6.1...v1.0.0) (2026-11-23)
+
+
+* feat!: release 1.0 ([ea942c4](https://github.com/caioaletroca/C3AP/commit/ea942c44b7ca0551a65a56213026d6b378c6b0e5))
+
+
+### BREAKING CHANGES
+
+* seeds generated with 0.x are not compatible with 1.0. The
+item and location set changed (per-level items, secret-exit levels and their
+entry checks, relic logic needs the level's crystal), so generate a new seed
+and use the 1.0 client.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+
 ## [0.6.1](https://github.com/caioaletroca/C3AP/compare/v0.6.0...v0.6.1) (2026-11-23)
 
 
