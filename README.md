@@ -7,8 +7,9 @@ Archipelago is a multi-game randomizer: the items of every game in a session are
 worlds. In Crash Bandicoot 3, finishing levels, collecting crystals, gems and relics and beating bosses sends items
 to other players (or to yourself), and the crystals, gems, relics and powers come back to you as items.
 
-> **Status: alpha.** Most of the RAM map is confirmed in BizHawk; the v1.0 features (per-level items, exits, relics,
-> secret levels) still need a full playtest. The checklist is in [tools/VERIFY.md](tools/VERIFY.md). Sister project of
+> **Status: 1.0.** Playtested in BizHawk from a new game to Cortex: per-level items, exits, crystals, gems, relics,
+> the secret levels (Hot Coco and Eggipus Rex included) and level shuffle across warp rooms. A few gem bits are still
+> learned in play (see below); the test log is in [tools/VERIFY.md](tools/VERIFY.md). Sister project of
 > [C1AP](https://github.com/caioaletroca/C1AP).
 
 ## What is randomized?
@@ -71,7 +72,7 @@ The full guides are the [setup guide](crash3/docs/setup_en.md) and the
 ## Known issues
 
 - Only the NTSC-U version (SCUS-94244) is supported.
-- The RAM map is unconfirmed (see the status note above).
+- A few RAM details are still marked `VERIFY` in `crash3/ram.py`; the playtested paths are listed in tools/VERIFY.md.
 - Death Link only sends deaths.
 - Four gem path gems, Future Frenzy's second gem and the two race gems have unknown RAM bits: the client learns
   them when you win them and asks you to report the bit.

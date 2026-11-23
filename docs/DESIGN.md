@@ -65,7 +65,7 @@ Same scheme as C1AP, which has been verified live there.
 
 ## Target design (v1.0, C2AP style)
 
-Agreed with the project owner on 2026-11-22. **Built on 2026-11-22** (VERIFY round 7 is its playtest). The v0.1
+Agreed with the project owner on 2026-11-22. **Built on 2026-11-22**, playtested in VERIFY round 7 (new game to Cortex) and released as 1.0.0. The v0.1
 sections above are history; where they differ, this section wins. What v1.0 does beyond the plan below:
 
 - Items: one per level and kind (crystal, clear gem, gem path gem, race gem, relic), item IDs from the level ID.
