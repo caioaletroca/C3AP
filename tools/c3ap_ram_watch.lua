@@ -8,7 +8,7 @@
 -- X/Z RetroAchievements, W/A/S/D/E/Q/K the controller):
 --   U  snapshot the GOOL globals block and what follows it (relics, flags)
 --   L  list every word there that changed since the U snapshot
---   G  search the first 128 KB for the disc ID (SCUS_942.44 / SCUS-94244)
+--   G  "last level" probe: arm, finish a level normally, wait in the warp room (see the function)
 --   O  +5 crystals: the next warp room's five levels (room 1 first). Powers untouched.
 --   B  HOLD powers at 0 every frame (as the client would); press again to release
 --   C  HOLD all powers on (0x3F, the cheat code's value) every frame; press again to release
@@ -204,6 +204,60 @@ local function toggle_redirect()
   end
 end
 
+-- G: "last level" probe. The warp room spawns Crash at the last level's button (R shows it). A normal finish seems to
+-- set that value to the level just finished. Arm with G, finish a level normally, wait in the warp room: the probe
+-- lists the words that changed and the ones holding the finished level's ID.
+local PROBE_END = 0x069400
+local probe = nil   -- {state = "armed" | "exited", snap = {}, lid = n, frames = n}
+local function words_now()
+  local t = {}
+  for addr = GLOBALS_START, PROBE_END - 4, 4 do t[addr] = memory.read_u32_le(addr) end
+  return t
+end
+local function is_lid(value, lid) return value == lid or value == (lid << 8) end
+local function toggle_probe()
+  if probe == nil then
+    probe = {state = "armed"}
+    log("probe G ARMED: finish a level normally, then stand still in the warp room for ~10 seconds")
+  else
+    probe = nil
+    log("probe G off")
+  end
+end
+local function run_probe()
+  if probe == nil then return end
+  local state = memory.read_u32_le(GAMESTATE)
+  if probe.state == "armed" and state == 0x300 then
+    probe.state, probe.snap, probe.lid, probe.frames = "exited", words_now(), memory.read_u32_le(LEVEL) >> 8, 0
+    probe.button = memory.read_u32_le(0x0691F0) >> 8
+    log(string.format("probe G: normal finish of level %02X (button candidate 1F0 = %02X). Words holding %02X now:",
+      probe.lid, probe.button, probe.lid))
+    for addr, value in pairs(probe.snap) do
+      if is_lid(value, probe.lid) then log(string.format("  0x%08X = %08X", 0x80000000 + addr, value)) end
+    end
+  elseif probe.state == "exited" then
+    if (memory.read_u32_le(LEVEL) >> 8) == 2 and state == 0x100 then probe.frames = probe.frames + 1 end
+    if probe.frames == 400 then
+      local now = words_now()
+      log(string.format("probe G: back in the warp room. Changed words (* = holds the finished level %02X, " ..
+        "B = held the button's level %02X before):", probe.lid, probe.button))
+      local n = 0
+      for addr = GLOBALS_START, PROBE_END - 4, 4 do
+        if now[addr] ~= probe.snap[addr] then
+          n = n + 1
+          local mark = (is_lid(now[addr], probe.lid) and "*" or " ") .. (is_lid(probe.snap[addr], probe.button) and "B" or " ")
+          log(string.format("  %s 0x%08X  %08X -> %08X", mark, 0x80000000 + addr, probe.snap[addr], now[addr]))
+        end
+      end
+      log(string.format("probe G: %d words changed. Also holding %02X now:", n, probe.lid))
+      for addr = GLOBALS_START, PROBE_END - 4, 4 do
+        if is_lid(now[addr], probe.lid) then log(string.format("  0x%08X = %08X", 0x80000000 + addr, now[addr])) end
+      end
+      probe = nil
+    end
+  end
+end
+
 local function add_unit(addr, name)
   memory.write_u32_le(addr, memory.read_u32_le(addr) + 0x100)
   log(string.format("poke: %s +1 (now %08X)", name, memory.read_u32_le(addr)))
@@ -215,7 +269,7 @@ local relic_test_on = false
 local actions = {
   U = take_snapshot,
   L = diff_snapshot,
-  G = find_disc_id,
+  G = toggle_probe,
   O = open_everything,
   B = toggle_powers,
   C = function() toggle_hold(POWERS, 0x3F, "C", "all powers") end,
@@ -281,7 +335,7 @@ local actions = {
 }
 
 local last_word, last_field, held = {}, {}, {}
-log("C3AP RAM watch ready (U/L globals diff, G disc ID, O crystals, B no powers, C all powers, T relic test, V +5 relics, H bosses, J gems on/off, R reload hub, Y shuffle, N life, M mask)")
+log("C3AP RAM watch ready (U/L globals diff, G last-level probe, O crystals, B no powers, C all powers, T relic test, V +5 relics, H bosses, J gems on/off, R reload hub, Y shuffle, N life, M mask)")
 
 while true do
   local keys = input.get()
@@ -291,6 +345,7 @@ while true do
   end
 
   for addr, value in pairs(holds) do memory.write_u32_le(addr, value) end
+  run_probe()
 
   -- Shuffle test: swap the button's request the frame it appears, or ask again once Toad Village has loaded.
   if redirect_target ~= nil then
