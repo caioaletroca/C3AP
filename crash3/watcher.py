@@ -132,12 +132,12 @@ class Watcher:
         self.redirected_to: int | None = None
         """Level we last asked the loader for, so its load isn't redirected again"""
         self.redirect_arrived = False
+        """The level in ``redirected_to`` has loaded; only then may a return to the warp room forget it"""
         self.redirect_button = 0
         """Vanilla level ID of the button whose redirect is in ``redirected_to``"""
         self.pending_finish: tuple[int, int, bool] | None = None
         """(level played, its button, button's bit already set) after a normal finish of a shuffled level, until the
         game sets the button's "level completed" bit back in the warp room and the client moves it to the level"""
-        """The level in ``redirected_to`` has loaded; only then may a return to the warp room forget it"""
         self.known_gem_bits: set[int] = {
             *ram.CLEAR_GEM_BIT_BY_LID.values(),
             *(bit for bit in ram.PATH_GEM_BIT_BY_LID.values() if bit is not None),
