@@ -1,5 +1,12 @@
 # Changelog
 
+# [0.6.0](https://github.com/caioaletroca/C3AP/compare/v0.5.6...v0.6.0) (2026-11-23)
+
+
+### Features
+
+* add Hot Coco and Eggipus Rex ([70c2926](https://github.com/caioaletroca/C3AP/commit/70c29266d52a8cfd2d98c174cc4fcdaadf838ed5))
+
 ## [0.5.6](https://github.com/caioaletroca/C3AP/compare/v0.5.5...v0.5.6) (2026-11-23)
 
 
