@@ -439,6 +439,20 @@ class TestLevelShuffle(WatcherTest):
         self.step(replace(level, gamestate=ram.GAMESTATE_LEVEL_DONE))
         self.assertEqual(self.written(ram.LAST_LEVEL), lid("Toad Village") << 8)
 
+    def test_return_is_rewritten_only_once(self) -> None:
+        # Under Pressure's own button is shuffled too (it loads Toad Village): never rewrite again from there.
+        level = self.step(self.in_level("Under Pressure", last_level=lid("Under Pressure")))
+        self.step(replace(level, gamestate=ram.GAMESTATE_LEVEL_DONE, last_level=lid("Toad Village")))
+        self.assertNotIn(ram.LAST_LEVEL, self.actions.writes)
+        self.step(replace(HUB, last_level=lid("Toad Village")))
+        self.assertNotIn(ram.LAST_LEVEL, self.actions.writes)
+
+    def test_button_bit_is_the_shuffled_levels_exit(self) -> None:
+        # The game sets the bit of LAST_LEVEL, now the button (Toad Village's), after finishing Under Pressure.
+        self.step(HUB)
+        self.step(replace(HUB, levels_completed=1 << lid("Toad Village")))
+        self.assertEqual(self.actions.locations, {loc("Under Pressure - Exit")})
+
     def test_unshuffled_last_level_is_left_alone(self) -> None:
         self.step(replace(HUB, last_level=lid("Orient Express")))
         self.assertNotIn(ram.LAST_LEVEL, self.actions.writes)

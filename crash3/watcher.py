@@ -189,10 +189,13 @@ class Watcher:
             return
 
         # Exits and bosses: the game's own "level completed" field (never written by the client). Any set bit whose
-        # location is unchecked counts, so they are also sent after a client restart.
+        # location is unchecked counts, so they are also sent after a client restart. The game sets the bit of the
+        # level in LAST_LEVEL, which the client points at the button (_fix_return), so a main level's bit means "the
+        # level behind that button was finished".
         for level in (*EXIT_LEVELS, *BOSSES):
             if _bit_set(snap.levels_completed, level.lid):
-                self._send(level.defeat_location if level.is_boss else level.exit_location, checked, actions)
+                finished = LEVEL_BY_LID[self.button_target.get(level.lid, level.lid)]
+                self._send(finished.defeat_location if finished.is_boss else finished.exit_location, checked, actions)
         if _bit_set(snap.levels_completed, FINAL_BOSS.lid) and all(received[name] for name in self.slot.goal_items):
             actions.goal = True
 
@@ -350,15 +353,15 @@ class Watcher:
             actions.guards[address] = (current, size)
 
     def _fix_return(self, snap: ram.Snapshot, actions: Actions) -> None:
-        """After a normal finish the warp room spawns Crash at the button of the level in LAST_LEVEL, which the game
-        sets to the level just played (BizHawk). For a shuffled level, point it at the button that leads there, so
-        Crash comes back to the warp room he left. Never while that level is still being played."""
-        button = self.home_button.get(snap.last_level)
-        if button is None:
+        """Back in the warp room, Crash spawns at the button of the level in LAST_LEVEL, which the game sets to the
+        level just played (BizHawk). When leaving a shuffled level, point it once at the button that leads there, so
+        Crash comes back to the warp room he left. Only the level just played is rewritten: the button's own level may
+        be shuffled too, and rewriting that again would walk around the shuffle (BizHawk: landed at Midnight Run)."""
+        level = self.level
+        if level is None or level.lid != snap.last_level or level.lid not in self.home_button:
             return
-        leaving = snap.gamestate in (ram.GAMESTATE_LEVEL_DONE, ram.GAMESTATE_QUIT) or snap.hub_loading_or_in
-        if leaving or snap.level != snap.last_level:
-            actions.writes[ram.LAST_LEVEL] = (button << 8, 4)
+        if snap.gamestate in (ram.GAMESTATE_LEVEL_DONE, ram.GAMESTATE_QUIT) or snap.hub_loading_or_in:
+            actions.writes[ram.LAST_LEVEL] = (self.home_button[level.lid] << 8, 4)
             actions.guards[ram.LAST_LEVEL] = (snap.last_level << 8, 4)
 
     def _redirect_level(self, snap: ram.Snapshot, actions: Actions) -> None:
