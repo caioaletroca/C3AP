@@ -80,8 +80,9 @@ sections above are history; where they differ, this section wins. What v1.0 does
   all. Hot Coco (0x27) is behind Road Crash's alien sign (GAMESTATE 0x400 then scene 0x27; a finish returns to Road
   Crash's button) and needs nothing; its gem is the box gem. Eggipus Rex (0x26) is behind Dino Might!'s Yellow Gem path
   (Yellow Gem only, no Super Body Slam); its gem is for finishing (no boxes). Its locations exist only with gem checks,
-  since the Yellow Gem is only an item then. Their region is the host's button's warp room. Exit, gem and relic bits
-  are assumed to be the level ID like the others (VERIFY: bits 38-39 of the 8-byte fields).
+  since the Yellow Gem is only an item then. Their region is the host's button's warp room. Gem bits 38/39 are confirmed
+  (BizHawk), Eggipus Rex's exit and relic bits too. Their time trial is open from the first visit, with or without
+  the gem (BizHawk: Eggipus Rex), so their relics need only the level.
 - The client only writes the gem and relic bits of locations the seed has, so a gem or relic that isn't a check stays
   vanilla (secret levels' gems without relic checks, Eggipus Rex without gem checks).
 - Gem powers (owner's rule, 2026-11-22, data.Level.gem_powers): no powers for gems in warp rooms 1-2 and in the

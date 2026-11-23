@@ -168,7 +168,11 @@ Generate a seed with the default options plus `level_shuffle: all_rooms`, start 
 "Eggipus Rex Clear Gem" set GEMS bits 39 and 38 and raised the pause menu's gem count. ✅ Dino Might!'s Yellow Gem path
 leaves with GAMESTATE 0x400 and loads scene 0x26; "Eggipus Rex - Entered" was sent, and its gem bit is held at 0 inside
 so the game can award it. ✅ The client caught the button's request during the intro cutscene (0x1D swapped to 0x10),
-so no double load. Not checked yet: finishing either level (exit bit, return spot), Hot Coco's entry, their relics.
+so no double load. ✅ Finishing Eggipus Rex sent "Eggipus Rex - Exit" and "- Clear Gem" (the gem bit came back in
+the warp room). ✅ Its time trial clock was there on a state saved before the first finish, and winning Gold sent the
+Sapphire and Gold relics without Crash Dash. Crystal-less levels offer the time trial from the first visit (owner,
+also per a guide for Hot Coco: relic and gem are independent), so their relics need no extra item. Not checked yet:
+the return spot after a secret-exit finish, Hot Coco's entry and exit.
 
 **Round 7 (cross-room shuffle, Gee Wiz behind Under Pressure's button):** ✅ a normal finish returns Crash to the
 button he used once the client rewrites LAST_LEVEL (0x80068F48); ✅ re-entry loads the shuffled level, with or without
