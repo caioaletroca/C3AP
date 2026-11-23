@@ -1,7 +1,7 @@
 {
     "game": "Crash Bandicoot 3",
     "minimum_ap_version": "0.6.8",
-    "world_version": "0.5.4",
+    "world_version": "0.5.5",
     "authors": [
         "C3AP contributors"
     ]

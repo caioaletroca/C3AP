@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.5](https://github.com/caioaletroca/C3AP/compare/v0.5.4...v0.5.5) (2026-11-23)
+
+
+### Bug Fixes
+
+* move the level-completed bit to the shuffled level played ([ab540da](https://github.com/caioaletroca/C3AP/commit/ab540da9d655353a9870629cc559f13927190c09))
+
 ## [0.5.4](https://github.com/caioaletroca/C3AP/compare/v0.5.3...v0.5.4) (2026-11-23)
 
 
