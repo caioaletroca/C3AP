@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.6](https://github.com/caioaletroca/C3AP/compare/v0.5.5...v0.5.6) (2026-11-23)
+
+
+### Bug Fixes
+
+* **logic:** time trial relics need the level's crystal ([c9c36a5](https://github.com/caioaletroca/C3AP/commit/c9c36a5f0605e708bd1ce78f67c3c0a43302cfe8))
+
 ## [0.5.5](https://github.com/caioaletroca/C3AP/compare/v0.5.4...v0.5.5) (2026-11-23)
 
 
