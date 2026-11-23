@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.3](https://github.com/caioaletroca/C3AP/compare/v0.5.2...v0.5.3) (2026-11-23)
+
+
+### Bug Fixes
+
+* rewrite the return level only once; exits follow the button ([fbde31a](https://github.com/caioaletroca/C3AP/commit/fbde31ac3244a14284179e9bd797ee9c216234be))
+
 ## [0.5.2](https://github.com/caioaletroca/C3AP/compare/v0.5.1...v0.5.2) (2026-11-23)
 
 
