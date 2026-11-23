@@ -1,5 +1,12 @@
 # Changelog
 
+# [0.5.0](https://github.com/caioaletroca/C3AP/compare/v0.4.0...v0.5.0) (2026-11-23)
+
+
+### Features
+
+* per-level gem powers and corrected gem layout ([c8e159d](https://github.com/caioaletroca/C3AP/commit/c8e159d3c27fcc9874cd4e6c8b7fb74f94c3259d))
+
 # [0.4.0](https://github.com/caioaletroca/C3AP/compare/v0.3.1...v0.4.0) (2026-11-23)
 
 
