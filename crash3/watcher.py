@@ -232,7 +232,7 @@ class Watcher:
 
         # Known gem bits that are never masked (a gem path gem the player had no item for is simply not there)
         gems: list[tuple[int | None, str]] = []
-        if level.path_gem:
+        if level.second_gem:
             gems.append((ram.PATH_GEM_BIT_BY_LID.get(level.lid), level.path_gem_location))
         if level.race_gem:
             gems.append((ram.RACE_GEM_BIT_BY_LID.get(level.lid), level.race_gem_location))
@@ -269,7 +269,7 @@ class Watcher:
             hold("crystals", ram.CRYSTAL_BIT_BY_LID.get(level.lid), level.crystal_location)
         if self.slot.gem_checks:
             hold("gems", ram.CLEAR_GEM_BIT_BY_LID.get(level.lid), level.clear_gem_location)
-            if level.path_gem:
+            if level.second_gem:
                 hold("gems", ram.PATH_GEM_BIT_BY_LID.get(level.lid), level.path_gem_location)
             if level.race_gem:
                 hold("gems", ram.RACE_GEM_BIT_BY_LID.get(level.lid), level.race_gem_location)

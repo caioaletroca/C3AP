@@ -72,9 +72,8 @@ The full guides are the [setup guide](crash3/docs/setup_en.md) and the
 - The RAM map is unconfirmed (see the status note above).
 - Death Link only sends deaths.
 - Hot Coco and Eggipus Rex (the secret-exit levels) are not included yet.
-- Five gem path gems and the two race gems have unknown RAM bits: the client learns them when you win them and asks
-  you to report the bit.
-- Gem logic uses the powers you would have in the level's own warp room, which is stricter than needed.
+- Four gem path gems, Future Frenzy's second gem and the two race gems have unknown RAM bits: the client learns
+  them when you win them and asks you to report the bit.
 - Avoid loading save states in the middle of a level.
 
 ## Development

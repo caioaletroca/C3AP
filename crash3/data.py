@@ -47,8 +47,17 @@ class Level:
     room: int
     """Warp room (1-5); 6 = the secret warp room"""
     kind: Kind = Kind.LEVEL
+    second_gem: bool = False
+    """Has a second clear gem (a gem path, or Future Frenzy's secret entrance)"""
     path_gem: tuple[Gem, ...] = field(default=())
-    """Colored gems needed for this level's second (gem path) clear gem; empty if it has none"""
+    """Colored gems needed for the second clear gem"""
+    box_gem_colors: tuple[Gem, ...] = ()
+    """Colored gems needed for every box, so for the box clear gem (their paths hold boxes)"""
+    gem_powers: tuple[str, ...] = ()
+    """Powers needed for every gem of this level (owner's rule: none in warp rooms 1-2 and the ride levels, Double
+    Jump in High Time, Super Body Slam in Dino Might!, Death Tornado Spin in warp room 4, Fruit Bazooka in warp room
+    5)"""
+    second_gem_name: str = "Gem Path Clear Gem"
     colored_gem: Gem | None = None
     """The colored gem found in this level"""
     path_powers: tuple[str, ...] = ()
@@ -101,7 +110,7 @@ class Level:
 
     @property
     def path_gem_item(self) -> str:
-        return f"{self.name} Gem Path Clear Gem"
+        return f"{self.name} {self.second_gem_name}"
 
     @property
     def race_gem_item(self) -> str:
@@ -129,7 +138,7 @@ class Level:
 
     @property
     def path_gem_location(self) -> str:
-        return f"{self.name} - Gem Path Clear Gem"
+        return f"{self.name} - {self.second_gem_name}"
 
     @property
     def colored_gem_location(self) -> str:
@@ -144,32 +153,36 @@ LEVELS: tuple[Level, ...] = (
     Level("Toad Village", 0x0B, 1, 1),
     Level("Under Pressure", 0x0E, 2, 1),
     Level("Orient Express", 0x0A, 3, 1),
-    Level("Bone Yard", 0x0C, 4, 1, path_gem=(Gem.RED,), path_powers=("Double Jump",)),
+    Level("Bone Yard", 0x0C, 4, 1, second_gem=True, path_gem=(Gem.RED,), path_powers=("Double Jump",)),
     Level("Makin' Waves", 0x19, 5, 1),
     # Warp room 2
     Level("Gee Wiz", 0x0F, 6, 2),
     Level("Hang 'em High", 0x16, 7, 2, colored_gem=Gem.YELLOW, gem_relics=10),  # Yellow Gem: secret pad 27
     Level("Hog Ride", 0x15, 8, 2),
-    Level("Tomb Time", 0x12, 9, 2, path_gem=(Gem.PURPLE,)),
+    Level("Tomb Time", 0x12, 9, 2, box_gem_colors=(Gem.PURPLE,)),  # one gem; 20 of its boxes are on the path
     Level("Midnight Run", 0x11, 10, 2),
     # Warp room 3
-    Level("Dino Might!", 0x10, 11, 3, path_gem=(Gem.YELLOW,)),
+    Level("Dino Might!", 0x10, 11, 3, second_gem=True, path_gem=(Gem.YELLOW,), box_gem_colors=(Gem.YELLOW,),
+          gem_powers=("Super Body Slam",)),  # bonus round: 24 body slams
     Level("Deep Trouble", 0x1C, 12, 3, colored_gem=Gem.RED),
-    Level("High Time", 0x1A, 13, 3, colored_gem=Gem.PURPLE),
+    Level("High Time", 0x1A, 13, 3, colored_gem=Gem.PURPLE, gem_powers=("Double Jump",)),
     Level("Road Crash", 0x14, 14, 3),
     Level("Double Header", 0x1D, 15, 3),
     # Warp room 4
-    Level("Sphynxinator", 0x1E, 16, 4, path_gem=(Gem.BLUE,)),
+    Level("Sphynxinator", 0x1E, 16, 4, second_gem=True, path_gem=(Gem.BLUE,), path_powers=("Double Jump",),
+          gem_powers=("Death Tornado Spin",)),
     Level("Bye Bye Blimps", 0x13, 17, 4),
     Level("Tell No Tales", 0x0D, 18, 4),
-    Level("Future Frenzy", 0x1B, 19, 4, gem_relics=20),  # its clear gem: secret pad 29
-    Level("Tomb Wader", 0x18, 20, 4, colored_gem=Gem.BLUE),
+    Level("Future Frenzy", 0x1B, 19, 4, second_gem=True, gem_relics=20, gem_powers=("Death Tornado Spin",),
+          second_gem_name="Secret Entrance Clear Gem"),  # both gems need the secret pad 29 entrance (37 boxes)
+    Level("Tomb Wader", 0x18, 20, 4, colored_gem=Gem.BLUE, gem_powers=("Death Tornado Spin",)),
     # Warp room 5
-    Level("Gone Tomorrow", 0x23, 21, 5, path_gem=(Gem.GREEN,)),
+    Level("Gone Tomorrow", 0x23, 21, 5, second_gem=True, path_gem=(Gem.GREEN,), box_gem_colors=(Gem.GREEN,),
+          gem_powers=("Fruit Bazooka",)),
     Level("Orange Asphalt", 0x20, 22, 5),
-    Level("Flaming Passion", 0x22, 23, 5, colored_gem=Gem.GREEN),
+    Level("Flaming Passion", 0x22, 23, 5, colored_gem=Gem.GREEN, gem_powers=("Fruit Bazooka",)),
     Level("Mad Bombers", 0x17, 24, 5),
-    Level("Bug Lite", 0x24, 25, 5, path_gem=ALL_COLORS),
+    Level("Bug Lite", 0x24, 25, 5, second_gem=True, path_gem=ALL_COLORS, gem_powers=("Fruit Bazooka",)),
     # Bosses: the sixth button of each warp room
     Level("Tiny Tiger", 0x06, 0, 1, Kind.BOSS),
     Level("Dingodile", 0x03, 0, 2, Kind.BOSS),
@@ -234,7 +247,7 @@ def powers_before_room(room: int) -> tuple[Power, ...]:
     return tuple(POWER_BY_BOSS[BOSS_BY_ROOM[r].name] for r in range(1, room))
 
 
-PATH_GEM_LEVELS: tuple[Level, ...] = tuple(level for level in MAIN_LEVELS if level.path_gem)
+PATH_GEM_LEVELS: tuple[Level, ...] = tuple(level for level in MAIN_LEVELS if level.second_gem)
 COLORED_GEM_LEVELS: tuple[Level, ...] = tuple(level for level in MAIN_LEVELS if level.colored_gem is not None)
 RACE_GEM_LEVELS: tuple[Level, ...] = tuple(level for level in SECRET_LEVELS if level.race_gem)
 

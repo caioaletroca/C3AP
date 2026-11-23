@@ -77,8 +77,14 @@ sections above are history; where they differ, this section wins. What v1.0 does
   gem bit no known gem owns appearing is that gem; the client logs the bit.
 - The "level completed" field is read as 8 bytes (level IDs reach 0x27). VERIFY for IDs of 32 and up.
 - Hot Coco and Eggipus Rex wait for a later version (owner), so there are 28 relics, not 30.
-- Gem logic: until the per-level power table exists, a gem needs every power a vanilla player has in the level's own
-  warp room (tied to the level, so shuffle stays honest).
+- Gem powers (owner's rule, 2026-11-22, data.Level.gem_powers): no powers for gems in warp rooms 1-2 and in the
+  ride levels; in warp room 3 only High Time (Double Jump) and Dino Might! (Super Body Slam, its bonus round); Death
+  Tornado Spin for the other warp room 4 levels, Fruit Bazooka for the other warp room 5 levels. Path extras: Bone
+  Yard's red path needs Double Jump, Sphynxinator's blue path Double Jump (a gap crossed with Double Jump + Death
+  Tornado Spin, GameFAQs).
+- Gem layout (GameFAQs guides by josher1212, NickWhiz1, Nemesis): Tomb Time has one gem, which needs Purple (20 of
+  its boxes are on the path). Dino Might! and Gone Tomorrow need their color for both gems. Future Frenzy has two
+  gems, both behind secret pad 29 (20 relics): its box gem and a "Secret Entrance Clear Gem".
 - Without `relic_checks`, Hang 'em High's Yellow Gem and Future Frenzy's clear gem (behind secret pads 27 and 29) are
   left out; their items stay.
 

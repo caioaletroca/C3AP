@@ -205,15 +205,15 @@ class TestGems(WatcherTest):
         self.assertEqual(self.written(ram.GEMS), 0)
 
     def test_unknown_gem_bit_is_learned(self) -> None:
-        level = self.step(self.in_level("Tomb Time"))
+        level = self.step(self.in_level("Sphynxinator"))
         self.step(replace(level, gems=1 << 50))
-        self.assertEqual(self.actions.locations, {loc("Tomb Time - Gem Path Clear Gem")})
-        self.assertEqual(self.actions.learned, [("Tomb Time - Gem Path Clear Gem", 50)])
+        self.assertEqual(self.actions.locations, {loc("Sphynxinator - Gem Path Clear Gem")})
+        self.assertEqual(self.actions.learned, [("Sphynxinator - Gem Path Clear Gem", 50)])
 
     def test_known_gem_bit_is_not_learned(self) -> None:
-        level = self.step(self.in_level("Tomb Time"))
-        self.step(replace(level, gems=1 << lid("Tomb Time")))
-        self.assertEqual(self.actions.locations, {loc("Tomb Time - Clear Gem")})
+        level = self.step(self.in_level("Sphynxinator"))
+        self.step(replace(level, gems=1 << lid("Sphynxinator")))
+        self.assertEqual(self.actions.locations, {loc("Sphynxinator - Clear Gem")})
         self.assertFalse(self.actions.learned)
 
     def test_race_gem_is_learned_in_a_secret_level(self) -> None:

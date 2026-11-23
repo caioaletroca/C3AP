@@ -24,7 +24,7 @@ Defeat Dr. N. Cortex. Depending on the `goal` option, you also need every gem it
 
 - Finishing each of the 25 main levels normally (the exit), and its crystal.
 - Defeating Tiny Tiger, Dingodile, N. Tropy and N. Gin.
-- With *Gem Checks*: each level's clear gem, the clear gems behind the six gem paths, and the five colored gems.
+- With *Gem Checks*: each level's clear gem, the second clear gems (behind five gem paths, and Future Frenzy's secret entrance), and the five colored gems.
 - With *Relic Checks*: each level's Sapphire and Gold relic (Platinum too with *Platinum Relics*). Winning a better
   relic straight away also sends the lower ones. The secret levels Ski Crazed, Area 51? and Rings of Power (exit,
   clear gems, relics), and the two gems behind the secret warp room (Hang 'em High's Yellow Gem, Future Frenzy's

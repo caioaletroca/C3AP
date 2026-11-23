@@ -76,8 +76,8 @@ CRYSTAL_BIT_BY_LID: dict[int, int] = {}      # filled below: bit = level ID (VER
 CLEAR_GEM_BIT_BY_LID: dict[int, int] = {}    # filled below: bit = level ID (OK: GEMS bits 10-39 all count as gems,
                                              # the 30 level IDs 0x0A-0x27 of the main and secret levels)
 PATH_GEM_BIT_BY_LID: dict[int, int | None] = {}
-"""Second (gem path) clear gem: Bone Yard = bit 1 (OK, won in game); Tomb Time, Dino Might!, Sphynxinator,
-Gone Tomorrow, Bug Lite unknown (low bits, test with the V key)"""
+"""Second clear gem: Bone Yard = bit 1 (OK, won in game); Dino Might!, Sphynxinator, Future Frenzy, Gone Tomorrow and
+Bug Lite unknown (the client learns them)"""
 RACE_GEM_BIT_BY_LID: dict[int, int | None] = {0x25: None, 0x1F: None}
 """Area 51? and Rings of Power's race gem: unknown (bits 0 and 40 are gems from unknown levels; 48-55 untested)"""
 KNOWN_GEM_BITS_EXTRA: frozenset[int] = frozenset({0, 40})

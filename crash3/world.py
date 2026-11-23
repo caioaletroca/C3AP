@@ -7,7 +7,7 @@ from worlds.AutoWorld import WebWorld, World
 
 from .data import (
     BOSS_BY_ROOM, COLORED_GEMS, CRASH_DASH, FINAL_BOSS, ITEM_POWERS, LEVEL_BY_LID, LEVELS_PER_ROOM, MAIN_LEVELS,
-    SECRET_LEVELS, WARP_ROOMS, Level, Power, powers_before_room,
+    SECRET_LEVELS, WARP_ROOMS, Gem, Level,
 )
 from .items import (
     CRYSTALS_GROUP, DEFAULT_CLASSIFICATION, FILLER_WEIGHTS, GAME_NAME, GEMS_GROUP, NO_LIVES_TRAP, RELICS_GROUP,
@@ -47,8 +47,12 @@ CRYSTALS_PER_BOSS = LEVELS_PER_ROOM
 """Boss r's button needs a total of 5 * r crystals (the game counts the total, BizHawk)"""
 
 
-def powers_rule(powers: tuple[Power, ...]) -> Rule[Any]:
-    return HasAll(*(power.name for power in powers)) if powers else True_()
+def names_rule(names: tuple[str, ...]) -> Rule[Any]:
+    return HasAll(*names) if names else True_()
+
+
+def colors_rule(gems: tuple[Gem, ...]) -> Rule[Any]:
+    return names_rule(tuple(gem.item_name for gem in gems))
 
 
 def crystals(count: int) -> Rule[Any]:
@@ -106,9 +110,9 @@ class Crash3World(World):
 
     @staticmethod
     def gem_powers(level: Level) -> Rule[Any]:
-        """Powers to break every box. Until the per-level table is known: the powers a vanilla player has in the
-        level's own warp room (an over-estimate). Tied to the level, not to its button, so shuffle stays honest."""
-        return powers_rule(powers_before_room(level.room)) if level.room <= WARP_ROOMS else True_()
+        """Powers to get a level's gems (owner's rule, data.Level.gem_powers). Tied to the level, not to its button,
+        so shuffle stays honest."""
+        return names_rule(level.gem_powers)
 
     @staticmethod
     def relic_rule(level: Level) -> Rule[Any]:
@@ -155,16 +159,16 @@ class Crash3World(World):
         # Hang 'em High's Yellow Gem and Future Frenzy's clear gem are reached through a secret warp room pad.
         behind_pad = relics(level.gem_relics)
         reachable = not level.gem_relics or bool(self.options.relic_checks)
+        box_gem = powers & colors_rule(level.box_gem_colors)
         if level.colored_gem is not None:
-            self.set_rule(self.add_location(region, level.clear_gem_location), powers)
+            self.set_rule(self.add_location(region, level.clear_gem_location), box_gem)
             if reachable:
                 self.set_rule(self.add_location(region, level.colored_gem_location), powers & behind_pad)
         elif reachable:
-            self.set_rule(self.add_location(region, level.clear_gem_location), powers & behind_pad)
-        if level.path_gem:
+            self.set_rule(self.add_location(region, level.clear_gem_location), box_gem & behind_pad)
+        if level.second_gem and reachable:
             self.set_rule(self.add_location(region, level.path_gem_location),
-                          powers & HasAll(*(gem.item_name for gem in level.path_gem))
-                          & (HasAll(*level.path_powers) if level.path_powers else True_()))
+                          powers & behind_pad & colors_rule(level.path_gem) & names_rule(level.path_powers))
 
     def add_secret_level(self, region: Region, level: Level) -> None:
         pad = relics(level.pad_relics)
@@ -208,7 +212,7 @@ class Crash3World(World):
         if self.options.gem_checks:
             names += [gem.item_name for gem in COLORED_GEMS]
             names += [level.clear_gem_item for level in MAIN_LEVELS]
-            names += [level.path_gem_item for level in MAIN_LEVELS if level.path_gem]
+            names += [level.path_gem_item for level in MAIN_LEVELS if level.second_gem]
             if self.options.relic_checks:
                 names += [level.clear_gem_item for level in SECRET_LEVELS]
                 names += [level.race_gem_item for level in SECRET_LEVELS if level.race_gem]

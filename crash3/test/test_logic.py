@@ -20,11 +20,31 @@ class TestRoomGates(Crash3TestBase):
         self.assertTrue(self.can_reach_location("Gee Wiz - Crystal"), "levels and crystals need no powers")
         self.assertFalse(self.can_reach_location("Dingodile - Defeated"))
 
-    def test_gems_need_their_levels_vanilla_powers(self) -> None:
-        self.collect_by_name(crystal_items(5))
-        self.assertFalse(self.can_reach_location("Gee Wiz - Clear Gem"))
-        self.collect_by_name("Super Body Slam")
-        self.assertTrue(self.can_reach_location("Gee Wiz - Clear Gem"))
+    def test_gem_powers_per_level(self) -> None:
+        self.collect_by_name(crystal_items(25))
+        for level, power in (("High Time", "Double Jump"), ("Dino Might!", "Super Body Slam"),
+                             ("Tomb Wader", "Death Tornado Spin"), ("Flaming Passion", "Fruit Bazooka")):
+            with self.subTest(level=level):
+                self.assertFalse(self.can_reach_location(f"{level} - Clear Gem"), f"needs {power}")
+        self.assertTrue(self.can_reach_location("Gee Wiz - Clear Gem"), "warp rooms 1-2: no powers")
+        self.assertTrue(self.can_reach_location("Tell No Tales - Clear Gem"), "ride levels: no powers")
+        self.collect_by_name("Death Tornado Spin")
+        self.assertTrue(self.can_reach_location("Tomb Wader - Clear Gem"))
+
+    def test_box_gems_behind_a_colored_path(self) -> None:
+        self.collect_by_name(crystal_items(25) + ["Super Body Slam"])
+        self.assertFalse(self.can_reach_location("Tomb Time - Clear Gem"))
+        self.assertFalse(self.can_reach_location("Dino Might! - Clear Gem"))
+        self.collect_by_name(["Purple Gem", "Yellow Gem"])
+        self.assertTrue(self.can_reach_location("Tomb Time - Clear Gem"))
+        self.assertTrue(self.can_reach_location("Dino Might! - Clear Gem"))
+
+    def test_future_frenzy_gems_need_pad_29(self) -> None:
+        self.collect_by_name(crystal_items(25) + ["Death Tornado Spin"])
+        self.assertFalse(self.can_reach_location("Future Frenzy - Clear Gem"))
+        self.collect_by_name([level.relic_item for level in MAIN_LEVELS[:20]])
+        self.assertTrue(self.can_reach_location("Future Frenzy - Clear Gem"))
+        self.assertTrue(self.can_reach_location("Future Frenzy - Secret Entrance Clear Gem"))
 
     def test_gem_path_needs_its_color(self) -> None:
         self.assertFalse(self.can_reach_location("Bone Yard - Gem Path Clear Gem"))
