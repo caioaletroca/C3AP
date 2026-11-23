@@ -400,11 +400,19 @@ class TestDeathAndFiller(WatcherTest):
 
 
 class TestLevelShuffle(WatcherTest):
+    pressed = "Toad Village"
+    """Button the snapshots say was pressed last (LAST_BUTTON), unless a test sets last_button itself"""
+
     def setUp(self) -> None:
         super().setUp()
         order = list(VANILLA)
         order[0], order[1] = order[1], order[0]  # Toad Village's button loads Under Pressure and back
         self.watcher = make_watcher(level_order=tuple(order))
+
+    def step(self, snap: ram.Snapshot) -> ram.Snapshot:
+        if not snap.last_button:
+            snap = replace(snap, last_button=lid(self.pressed))
+        return super().step(snap)
 
     def test_caught_request_is_swapped(self) -> None:
         self.step(replace(HUB, scene_request=lid("Toad Village")))
@@ -513,3 +521,40 @@ class TestSecretExits(WatcherTest):
     def test_hot_coco_gem_is_masked(self) -> None:
         self.step(self.in_level("Hot Coco", gems=1 << lid("Hot Coco")))
         self.assertFalse(self.written(ram.GEMS) & 1 << lid("Hot Coco"), "held at 0 until its location is checked")
+
+
+class TestSecretPads(WatcherTest):
+    """Hang 'em High's button loads Toad Village; pad 27 asks for Hang 'em High's secret route (BizHawk)"""
+
+    def setUp(self) -> None:
+        super().setUp()
+        order = list(VANILLA)
+        a, b = VANILLA.index(lid("Toad Village")), VANILLA.index(lid("Hang 'em High"))
+        order[a], order[b] = order[b], order[a]
+        self.watcher = make_watcher(level_order=tuple(order))
+
+    def test_pad_request_is_left_alone(self) -> None:
+        # The last button pressed was Dino Might!'s; the pad doesn't change LAST_BUTTON.
+        self.step(replace(HUB, last_button=lid("Dino Might!"), scene_request=lid("Hang 'em High")))
+        self.assertNotIn(ram.SCENE_REQUEST, self.actions.writes)
+
+    def test_pad_level_load_is_left_alone(self) -> None:
+        # BizHawk: the request was missed and the fallback reloaded Toad Village once Hang 'em High had loaded.
+        self.step(replace(HUB, last_button=lid("Dino Might!")))
+        self.step(self.in_level("Hang 'em High", last_button=lid("Dino Might!")))
+        self.assertNotIn(ram.SCENE_REQUEST, self.actions.writes)
+
+    def test_button_request_is_still_swapped(self) -> None:
+        self.step(replace(HUB, last_button=lid("Hang 'em High"), scene_request=lid("Hang 'em High")))
+        self.assertEqual(self.written(ram.SCENE_REQUEST), lid("Toad Village"))
+
+    def test_last_button_is_cleared_when_the_redirect_lands(self) -> None:
+        pressed = lid("Hang 'em High")
+        self.step(replace(HUB, last_button=pressed, scene_request=pressed))
+        self.step(self.in_level("Toad Village", last_button=pressed))
+        self.assertEqual(self.written(ram.LAST_BUTTON), 0)
+        self.assertEqual(self.actions.guards[ram.LAST_BUTTON][0], pressed << 8)
+        # Back in the warp room, a pad asking for Hang 'em High no longer matches.
+        self.step(HUB)
+        self.step(replace(HUB, scene_request=pressed))
+        self.assertNotIn(ram.SCENE_REQUEST, self.actions.writes)

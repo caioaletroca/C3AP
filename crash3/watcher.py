@@ -132,6 +132,8 @@ class Watcher:
         self.redirected_to: int | None = None
         """Level we last asked the loader for, so its load isn't redirected again"""
         self.redirect_arrived = False
+        self.redirect_button = 0
+        """Vanilla level ID of the button whose redirect is in ``redirected_to``"""
         self.pending_finish: tuple[int, int, bool] | None = None
         """(level played, its button, button's bit already set) after a normal finish of a shuffled level, until the
         game sets the button's "level completed" bit back in the warp room and the client moves it to the level"""
@@ -411,24 +413,34 @@ class Watcher:
 
         The button's request sits in SCENE_REQUEST for 3 frames, so it can be missed; then the vanilla
         level loads and asking for the shuffled one replaces it. A level we asked for ourselves is never redirected.
+
+        Only a request (or a load) of the last button pressed (LAST_BUTTON) counts: the secret warp room's pads 27 and
+        29 ask for Hang 'em High and Future Frenzy too, for their secret routes (BizHawk: pad 27 was sent to Toad
+        Village and softlocked). LAST_BUTTON is cleared once a redirect lands, so a later pad never matches it.
         """
         if not self.button_target:
             return
         # LEVEL lags the loaded scene by ~345 frames (BizHawk), so right after a swapped request LEVEL still reads
         # "warp room": a redirect is only forgotten once its level was reached and Crash is back in the warp room.
-        if self.redirected_to is not None and snap.level == self.redirected_to:
+        if self.redirected_to is not None and snap.level == self.redirected_to and not self.redirect_arrived:
             self.redirect_arrived = True
+            if snap.last_button == self.redirect_button:
+                actions.writes[ram.LAST_BUTTON] = (0, 4)
+                actions.guards[ram.LAST_BUTTON] = (self.redirect_button << 8, 4)
         if self.redirect_arrived and snap.hub_ready:
             self.redirected_to = None
             self.redirect_arrived = False
-        if snap.scene_request in self.button_target and snap.scene_request != self.redirected_to:
-            self._ask_for(self.button_target[snap.scene_request], snap.scene_request, actions)
+        pressed = snap.last_button
+        if (snap.scene_request in self.button_target and snap.scene_request != self.redirected_to
+                and snap.scene_request == pressed):
+            self._ask_for(pressed, snap.scene_request, actions)
         elif (not snap.in_hub and snap.level in self.button_target and snap.level != self.redirected_to
-              and snap.scene_request == ram.NO_SCENE):
-            self._ask_for(self.button_target[snap.level], ram.NO_SCENE, actions)
+              and snap.scene_request == ram.NO_SCENE and snap.level == pressed):
+            self._ask_for(pressed, ram.NO_SCENE, actions)
 
-    def _ask_for(self, target: int, guard: int, actions: Actions) -> None:
-        actions.writes[ram.SCENE_REQUEST] = (target, 4)
+    def _ask_for(self, button: int, guard: int, actions: Actions) -> None:
+        actions.writes[ram.SCENE_REQUEST] = (self.button_target[button], 4)
         actions.guards[ram.SCENE_REQUEST] = (guard, 4)
-        self.redirected_to = target
+        self.redirected_to = self.button_target[button]
+        self.redirect_button = button
         self.redirect_arrived = False

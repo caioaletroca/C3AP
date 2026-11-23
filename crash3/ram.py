@@ -45,7 +45,10 @@ GOLD_RELICS = 0x800691BC       # OK: gold relic bitfield, 8 bytes, bit = level I
 # OK: a platinum relic is the sapphire bit AND the gold bit of the level (pause menu + warp room button). Only the
 # best tier is stored: sapphire only = Sapphire, gold only = Gold, both = Platinum.
 RELICS_SIZE = 8
-GLOBALS_END = GOLD_RELICS + RELICS_SIZE
+LAST_BUTTON = 0x800691F0       # OK: level ID << 8 of the last warp room button pressed, set with its request (BizHawk);
+                               # 0 in a new game. The secret warp room's pads (27, 29) leave it alone, so the client
+                               # only redirects a request that matches it, and clears it once a redirect lands
+GLOBALS_END = LAST_BUTTON + 4
 GLOBALS_SIZE = GLOBALS_END - GLOBALS_START
 
 # Engine state (DECOMP)
@@ -123,6 +126,8 @@ class Snapshot:
     levels_completed: int = 0
     last_level: int = 0
     """LAST_LEVEL >> 8"""
+    last_button: int = 0
+    """LAST_BUTTON >> 8"""
     sapphires: int = 0
     """64-bit sapphire relic field (bit = level ID)"""
     golds: int = 0
@@ -193,6 +198,7 @@ def parse(globals_block: bytes, scene_block: bytes) -> Snapshot:
         scene_request=_word(scene_block, SCENE_BLOCK, SCENE_REQUEST),
         hub_area=g(HUB_AREA),
         last_level=g(LAST_LEVEL) >> 8,
+        last_button=g(LAST_BUTTON) >> 8,
         levels_completed=_bytes_le(globals_block, GLOBALS_START, LEVELS_COMPLETED, LEVELS_COMPLETED_SIZE),
         sapphires=_bytes_le(globals_block, GLOBALS_START, SAPPHIRE_RELICS, RELICS_SIZE),
         golds=_bytes_le(globals_block, GLOBALS_START, GOLD_RELICS, RELICS_SIZE),
