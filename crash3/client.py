@@ -74,7 +74,7 @@ async def _write_word(ctx: "BizHawkClientContext", address: int, value: int, gua
     )
 
 
-class Crash1Client(BizHawkClient):
+class Crash3Client(BizHawkClient):
     game = GAME_NAME
     system = "PSX"
     patch_suffix = None
@@ -118,7 +118,7 @@ class Crash1Client(BizHawkClient):
             return
 
         if self.watcher is None:
-            self.watcher = Watcher(SlotInfo.from_slot_data(ctx.slot_data))
+            self.watcher = Watcher(SlotInfo.from_slot_data(ctx.slot_data, ctx.server_locations))
             await ctx.update_death_link(bool(ctx.slot_data.get("death_link", False)))
         if not self.notify_set:
             ctx.set_notify(_filler_key(ctx), _trap_key(ctx))
@@ -141,6 +141,8 @@ class Crash1Client(BizHawkClient):
                      for address, (value, size) in actions.guards.items()],
                 )
 
+            for name, bit in actions.learned:
+                logger.info(f"Learned a gem bit: {name} = GEMS bit {bit}. Please report it on the C3AP issue tracker.")
             if actions.reload_hub:
                 logger.info("Crystals changed in the warp room: reloading it so its buttons match.")
 

@@ -3,31 +3,48 @@
 Each poll the client parses a ``Snapshot`` and calls ``Watcher.step``. The watcher returns ``Actions``: locations to
 send, RAM fields to write, and whether the goal was reached or Crash died. The client performs the I/O.
 
-Ownership rules (the same scheme that works in Crash 1, see docs/DESIGN.md):
-- Bosses: the game's "level completed" field (LEVELS_COMPLETED, bit = level ID) is never written; a boss's bit set is
-  its defeat check (Cortex's: the goal). A boss's bit is what opens the next warp room's fence (BizHawk).
-- Crystal bits mirror the received Crystal items, filled in level order (warp room 1's five first), so N crystals
-  open the first N // 5 boss buttons. Power bits mirror the received powers (the game
-  re-adds earned ones on every level load; the client rewrites them each poll). Colored gem bits (once their bit is known)
-  mirror the received colored gems.
-- While Crash is in a level whose crystal (or colored gem, or boss power) location is unchecked, that bit is held at 0,
-  so the game spawns the crystal and can award it; the bit then going 0 -> 1 is the check.
-- The game sets the crystal and gem bits back in the warp room, about 200 frames after the level (OK, BizHawk). So
-  the last level played stays "active" (masked and watched) through the warp room until another level loads.
-- Clear gem bits are never written: the active level's clear gem bit (or its gem path gem's bit) appearing is that
-  check.
+Ownership rules (docs/DESIGN.md):
+- The game's "level completed" field (LEVELS_COMPLETED, bit = level ID) is never written. A level's bit set is its exit
+  check, a boss's bit its defeat check, Cortex's the goal (once the goal items are held too). A boss's bit is what
+  opens the next warp room's fence (BizHawk).
+- Items are per level, like C2AP: "Toad Village Crystal" turns on Toad Village's crystal bit, "Toad Village Clear Gem"
+  its gem bit, "Toad Village Relic" its sapphire relic bit. Each of those bits mirrors its item. The boss buttons count
+  the crystal total and the secret warp room the relic total, so those totals follow the items.
+- Power bits mirror the received powers (the game re-adds earned ones on every level load; the client rewrites them
+  each poll). Colored gem bits mirror the received colored gems.
+- While Crash is in a level whose check is open, that check's bit is held at 0, so the game spawns the reward and can
+  award it; the bit then going 0 -> 1 is the check. A relic holds both the sapphire and the gold bit at 0: what the game
+  sets tells the tier (sapphire, gold, both = platinum), and a better tier also sends the lower ones.
+- The game sets crystal, gem and relic bits back in the warp room, about 200 frames after the level (OK for crystals
+  and gems, BizHawk). So the last level played stays "active" (masked and watched) through the warp room until another
+  level loads.
+- Gem bits that are still unknown (most gem path gems, the race gems) are learned: while Crash is in a level with one
+  open unknown gem, a gem bit nobody owns appearing is that gem. The client logs it so the bit can be added to ram.py.
 - With level shuffle, a warp room button's level request is swapped for the shuffled level.
 - A warp room builds its buttons from the crystal total when Crash walks up to it; changing the total under a built
   room leaves it with no buttons at all (BizHawk). Crossing 5r only changes warp room r. So in the hub, a change that
   crosses 5r while Crash stands in room r (or in an unknown area) is written together with a reload of the hub (scene
-  request 02, which fixes it); other changes are written as they are (the affected room is rebuilt when Crash walks
-  there). Nothing is written while the hub is still loading. Elsewhere crystals are written freely: the warp room is rebuilt on the way back.
+  request 02, which fixes it); other changes are written as they are. Nothing is written while the hub is still
+  loading. Elsewhere crystals are written freely: the warp room is rebuilt on the way back.
 """
+from collections import Counter
+from collections.abc import Collection
+from dataclasses import dataclass, field
+
+from . import ram
+from .data import (
+    BOSSES, COLORED_GEMS, FINAL_BOSS, GEM_LEVELS, ITEM_POWERS, LEVEL_BY_LID, MAIN_LEVELS, PATH_GEM_LEVELS,
+    RACE_GEM_LEVELS, RELIC_LEVELS, SECRET_LEVELS, Level,
+)
+from .locations import RELIC_TIERS, location_name_to_id
+
 CRYSTAL_GRACE_POLLS = 6
 """After the game awards a crystal in the warp room, the total is not lowered for this many polls: if the location held
 our own Crystal, the item arrives from the server meanwhile and no reload is needed"""
 WARP_ROOM_STEP = 5
 """Warp room states change at every 5 crystals (boss buttons at 5, 10, 15, 20, 25)"""
+ITEM_POWER_MASK = sum(1 << power.bit for power in ITEM_POWERS)
+EXIT_LEVELS: tuple[Level, ...] = MAIN_LEVELS + SECRET_LEVELS
 
 
 def crystal_stage(crystals: int) -> int:
@@ -38,38 +55,33 @@ def rooms_changed(old: int, new: int) -> set[int]:
     """Warp rooms whose buttons differ between two crystal fields (crossing 5r changes room r)"""
     low, high = sorted((crystal_stage(old), crystal_stage(new)))
     return set(range(low + 1, high + 1))
-from collections import Counter
-from collections.abc import Collection
-from dataclasses import dataclass, field
-
-from . import ram
-from .data import (
-    BOSSES, COLORED_GEMS, FINAL_BOSS, ITEM_POWERS, LEVEL_BY_LID, MAIN_LEVELS, Kind, Level,
-)
-from .items import CRYSTAL
-from .locations import location_name_to_id
-
-ITEM_POWER_MASK = sum(1 << power.bit for power in ITEM_POWERS)
 
 
 @dataclass(frozen=True)
 class SlotInfo:
     level_order: tuple[int, ...]
     """Level ID behind each warp room button; index 0 is level 1's button"""
-    gem_checks: bool
+    locations: frozenset[int]
+    """Every location of this slot (checked or not)"""
+    gem_checks: bool = True
+    relic_checks: bool = True
+    goal_items: tuple[str, ...] = ()
+    """Items the goal needs besides beating Cortex"""
 
     @classmethod
-    def from_slot_data(cls, slot_data: dict) -> "SlotInfo":
-        return cls(level_order=tuple(slot_data["level_order"]), gem_checks=bool(slot_data["gem_checks"]))
+    def from_slot_data(cls, slot_data: dict, locations: Collection[int]) -> "SlotInfo":
+        return cls(level_order=tuple(slot_data["level_order"]), locations=frozenset(locations),
+                   gem_checks=bool(slot_data["gem_checks"]), relic_checks=bool(slot_data.get("relic_checks", False)),
+                   goal_items=tuple(slot_data.get("goal_items", ())))
 
 
 @dataclass(frozen=True)
 class Mask:
-    """A bit held at 0 so the game can award it; the game awarding it checks ``location`` (None: the goal)"""
+    """A bit held at 0 so the game can award it; the game awarding it checks ``location``"""
     field: str
-    """One of FIELDS: crystals, gems or powers"""
+    """One of FIELDS"""
     bit: int
-    location: int | None
+    location: int
 
 
 @dataclass
@@ -84,17 +96,21 @@ class Actions:
     can_apply_filler: bool = False
     reload_hub: bool = False
     """The writes include a warp room reload"""
+    learned: list[tuple[str, int]] = field(default_factory=list)
+    """(location name, GEMS bit) of unknown gem bits learned this poll, for the log"""
 
 
 FIELDS: dict[str, tuple[int, int]] = {
     "crystals": (ram.CRYSTALS, ram.CRYSTALS_SIZE),
     "gems": (ram.GEMS, ram.GEMS_SIZE),
     "powers": (ram.POWERS, 4),
+    "sapphires": (ram.SAPPHIRE_RELICS, ram.RELICS_SIZE),
+    "golds": (ram.GOLD_RELICS, ram.RELICS_SIZE),
 }
 
 
-def _field(snap: ram.Snapshot, name: str) -> int:
-    return getattr(snap, name)
+def _bit_set(value: int, bit: int) -> bool:
+    return bool(value >> bit & 1)
 
 
 class Watcher:
@@ -106,13 +122,23 @@ class Watcher:
         """Vanilla level ID of a button -> level it should load (only buttons that changed)"""
         self.previous: ram.Snapshot | None = None
         self.level: Level | None = None
-        """Main level or boss Crash is in, or played last while back in the warp room"""
+        """Level or boss Crash is in, or played last while back in the warp room"""
         self.masked: list[Mask] = []
         """Bits held at 0 after the last poll"""
         self.crystal_grace = 0
         """Polls left during which the crystal total is not lowered in the warp room"""
         self.redirected_to: int | None = None
         """Level we last asked the loader for, so its load isn't redirected again"""
+        self.known_gem_bits: set[int] = {
+            *ram.CLEAR_GEM_BIT_BY_LID.values(),
+            *(bit for bit in ram.PATH_GEM_BIT_BY_LID.values() if bit is not None),
+            *(bit for bit in ram.RACE_GEM_BIT_BY_LID.values() if bit is not None),
+            *(bit for bit in ram.COLORED_GEM_BITS.values() if bit is not None),
+        }
+        """GEMS bits that belong to a known gem; any other gem bit appearing can be learned"""
+
+    def exists(self, name: str) -> bool:
+        return location_name_to_id[name] in self.slot.locations
 
     def step(self, snap: ram.Snapshot, received: Counter[str], checked: Collection[int]) -> Actions:
         actions = Actions()
@@ -125,12 +151,12 @@ class Watcher:
 
         level = LEVEL_BY_LID.get(snap.level)
         if level is not None:
-            self.level = level if level.kind != Kind.SECRET else None
+            self.level = level if level.in_v1 else None
         elif not (snap.in_hub or snap.level == ram.LID_TRANSITION):
             self.level = None
         # else: keep the level just played, whose rewards land in the warp room
 
-        self._detect_checks(snap, previous, checked, actions)
+        self._detect_checks(snap, previous, received, checked, actions)
         if self.crystal_grace:
             self.crystal_grace -= 1
         if any(mask.field == "crystals" and mask.location in actions.locations for mask in self.masked):
@@ -138,71 +164,123 @@ class Watcher:
         self._sync_fields(snap, received, set(checked) | actions.locations, actions)
         self._redirect_level(snap, actions)
 
-        # Every respawn after a death bumps RESPAWN_COUNT (VERIFY for Crash 3); it drops back to 0 when a level starts.
+        # Every respawn after a death bumps RESPAWN_COUNT; it drops back to 0 in the warp room.
         if (previous is not None and not previous.on_title and not snap.in_hub and snap.level == previous.level
                 and snap.respawn_count > previous.respawn_count):
             actions.died = True
 
-        # Lives and masks are applied in the warp room and carry into the next level (VERIFY, as in Crash 1).
+        # Lives and masks written in the warp room carry into the next level (BizHawk).
         actions.can_apply_filler = snap.in_hub
         return actions
 
     # Checks
 
-    def _detect_checks(self, snap: ram.Snapshot, previous: ram.Snapshot | None, checked: Collection[int],
-                       actions: Actions) -> None:
+    def _send(self, name: str, checked: Collection[int], actions: Actions) -> None:
+        location = location_name_to_id[name]
+        if location in self.slot.locations and location not in checked:
+            actions.locations.add(location)
+
+    def _detect_checks(self, snap: ram.Snapshot, previous: ram.Snapshot | None, received: Counter[str],
+                       checked: Collection[int], actions: Actions) -> None:
         if previous is None or previous.on_title:
             return
 
-        # Bosses: the game's own "level completed" field (never written by the client). Any set bit whose location is
-        # unchecked counts, so a defeat is also sent after a client restart.
-        for boss in (*BOSSES, FINAL_BOSS):
-            if snap.levels_completed & (1 << boss.lid):
-                if boss is FINAL_BOSS:
-                    actions.goal = True
-                else:
-                    location = location_name_to_id[boss.defeat_location]
-                    if location not in checked:
-                        actions.locations.add(location)
+        # Exits and bosses: the game's own "level completed" field (never written by the client). Any set bit whose
+        # location is unchecked counts, so they are also sent after a client restart.
+        for level in (*EXIT_LEVELS, *BOSSES):
+            if _bit_set(snap.levels_completed, level.lid):
+                self._send(level.defeat_location if level.is_boss else level.exit_location, checked, actions)
+        if _bit_set(snap.levels_completed, FINAL_BOSS.lid) and all(received[name] for name in self.slot.goal_items):
+            actions.goal = True
 
         if self.level is None:
             return
 
         # Masked bits: held at 0 last poll, so 0 -> 1 means the game just awarded it.
         for mask in self.masked:
-            bit = 1 << mask.bit
-            if not _field(previous, mask.field) & bit and _field(snap, mask.field) & bit:
-                if mask.location is None:
-                    actions.goal = True
-                elif mask.location not in checked:
+            if mask.field in ("sapphires", "golds"):
+                continue  # relics: below, both bits together give the tier
+            if not _bit_set(getattr(previous, mask.field), mask.bit) and _bit_set(getattr(snap, mask.field), mask.bit):
+                if mask.location not in checked:
                     actions.locations.add(mask.location)
 
-        # Clear gems: the level's own bit appearing (never written by the client).
-        if self.slot.gem_checks and self.level.kind == Kind.LEVEL:
-            gem_bits = [(ram.CLEAR_GEM_BIT_BY_LID.get(self.level.lid), self.level.clear_gem_location)]
-            if self.level.path_gem:
-                gem_bits.append((ram.PATH_GEM_BIT_BY_LID.get(self.level.lid), self.level.path_gem_location))
-            for bit, name in gem_bits:
-                if bit is not None and not previous.gems & (1 << bit) and snap.gems & (1 << bit):
-                    actions.locations.add(location_name_to_id[name])
+        self._detect_relic(snap, previous, checked, actions)
+        if self.slot.gem_checks:
+            self._detect_gems(snap, previous, checked, actions)
+
+    def _detect_relic(self, snap: ram.Snapshot, previous: ram.Snapshot, checked: Collection[int],
+                      actions: Actions) -> None:
+        level = self.level
+        assert level is not None
+        if not any(mask.field == "sapphires" for mask in self.masked):
+            return
+        bit = level.lid
+        if _bit_set(previous.sapphires, bit) or _bit_set(previous.golds, bit):
+            return  # not held at 0 yet
+        sapphire, gold = _bit_set(snap.sapphires, bit), _bit_set(snap.golds, bit)
+        if not (sapphire or gold):
+            return
+        tier = 2 if sapphire and gold else 1 if gold else 0
+        for name in RELIC_TIERS[:tier + 1]:
+            self._send(level.relic_location(name), checked, actions)
+
+    def _detect_gems(self, snap: ram.Snapshot, previous: ram.Snapshot, checked: Collection[int],
+                     actions: Actions) -> None:
+        level = self.level
+        assert level is not None
+        new_bits = snap.gems & ~previous.gems
+
+        # Known gem bits that are never masked (a gem path gem the player had no item for is simply not there)
+        gems: list[tuple[int | None, str]] = []
+        if level.path_gem:
+            gems.append((ram.PATH_GEM_BIT_BY_LID.get(level.lid), level.path_gem_location))
+        if level.race_gem:
+            gems.append((ram.RACE_GEM_BIT_BY_LID.get(level.lid), level.race_gem_location))
+        for bit, name in gems:
+            if bit is not None and _bit_set(new_bits, bit):
+                self._send(name, checked, actions)
+
+        # Unknown gem bits: learn them from the level's one open unknown gem.
+        unknown = [name for bit, name in gems
+                   if bit is None and self.exists(name) and location_name_to_id[name] not in checked]
+        if len(unknown) != 1:
+            return
+        for bit in range(ram.GEMS_SIZE * 8):
+            if _bit_set(new_bits, bit) and bit not in self.known_gem_bits:
+                self.known_gem_bits.add(bit)
+                self._send(unknown[0], checked, actions)
+                actions.learned.append((unknown[0], bit))
+                return
 
     # Writes
 
     def _masks(self, checked: Collection[int]) -> list[Mask]:
         level = self.level
-        if level is None:
+        if level is None or level.is_boss:
             return []
         masks: list[Mask] = []
-        if level.kind == Kind.LEVEL:
-            location = location_name_to_id[level.crystal_location]
-            bit = ram.CRYSTAL_BIT_BY_LID.get(level.lid)
-            if bit is not None and location not in checked:
-                masks.append(Mask("crystals", bit, location))
-            if self.slot.gem_checks and level.colored_gem is not None:
-                location = location_name_to_id[level.colored_gem_location]
-                bit = ram.COLORED_GEM_BITS[level.colored_gem.value]
-                if bit is not None and location not in checked:
-                    masks.append(Mask("gems", bit, location))
+
+        def hold(field_name: str, bit: int | None, name: str) -> None:
+            location = location_name_to_id.get(name)
+            if bit is not None and location in self.slot.locations and location not in checked:
+                masks.append(Mask(field_name, bit, location))
+
+        if level.has_crystal:
+            hold("crystals", ram.CRYSTAL_BIT_BY_LID.get(level.lid), level.crystal_location)
+        if self.slot.gem_checks:
+            hold("gems", ram.CLEAR_GEM_BIT_BY_LID.get(level.lid), level.clear_gem_location)
+            if level.path_gem:
+                hold("gems", ram.PATH_GEM_BIT_BY_LID.get(level.lid), level.path_gem_location)
+            if level.race_gem:
+                hold("gems", ram.RACE_GEM_BIT_BY_LID.get(level.lid), level.race_gem_location)
+            if level.colored_gem is not None:
+                hold("gems", ram.COLORED_GEM_BITS[level.colored_gem.value], level.colored_gem_location)
+        if self.slot.relic_checks and level.has_relic:
+            open_relics = [location_name_to_id[level.relic_location(tier)] for tier in RELIC_TIERS]
+            location = next((loc for loc in open_relics if loc in self.slot.locations and loc not in checked), None)
+            if location is not None:
+                masks.append(Mask("sapphires", level.lid, location))
+                masks.append(Mask("golds", level.lid, location))
         return masks
 
     def desired(self, snap: ram.Snapshot, received: Counter[str], checked: Collection[int]) -> dict[str, int]:
@@ -210,40 +288,48 @@ class Watcher:
         self.masked = self._masks(checked)
         masked = {(mask.field, mask.bit) for mask in self.masked}
 
+        def mirror(value: int, field_name: str, bit: int | None, owned: bool) -> int:
+            if bit is None:
+                return value
+            if owned and (field_name, bit) not in masked:
+                return value | 1 << bit
+            return value & ~(1 << bit)
+
         crystals = snap.crystals
-        # Boss buttons read the total (OK per the owner), so fill the first unmasked bits: a level held at 0 while its
-        # crystal is unchecked never costs a received crystal.
-        owned = min(received[CRYSTAL], len(MAIN_LEVELS))
         for level in MAIN_LEVELS:
-            bit = ram.CRYSTAL_BIT_BY_LID[level.lid]
-            if owned > 0 and ("crystals", bit) not in masked:
-                crystals |= 1 << bit
-                owned -= 1
-            else:
-                crystals &= ~(1 << bit)
+            crystals = mirror(crystals, "crystals", ram.CRYSTAL_BIT_BY_LID[level.lid], bool(received[level.crystal_item]))
 
         powers = snap.powers & ~ITEM_POWER_MASK
         for power in ITEM_POWERS:
             if received[power.name]:
                 powers |= 1 << power.bit
+        values = {"crystals": crystals, "powers": powers}
 
-        gems = snap.gems
         if self.slot.gem_checks:
+            gems = snap.gems
+            for level in GEM_LEVELS:
+                gems = mirror(gems, "gems", ram.CLEAR_GEM_BIT_BY_LID[level.lid], bool(received[level.clear_gem_item]))
+            for level in PATH_GEM_LEVELS:
+                gems = mirror(gems, "gems", ram.PATH_GEM_BIT_BY_LID.get(level.lid), bool(received[level.path_gem_item]))
+            for level in RACE_GEM_LEVELS:
+                gems = mirror(gems, "gems", ram.RACE_GEM_BIT_BY_LID.get(level.lid), bool(received[level.race_gem_item]))
             for gem in COLORED_GEMS:
-                bit = ram.COLORED_GEM_BITS[gem.value]
-                if bit is None:
-                    continue
-                if received[gem.item_name] and ("gems", bit) not in masked:
-                    gems |= 1 << bit
-                else:
-                    gems &= ~(1 << bit)
+                gems = mirror(gems, "gems", ram.COLORED_GEM_BITS[gem.value], bool(received[gem.item_name]))
+            values["gems"] = gems
 
-        return {"crystals": crystals, "powers": powers, "gems": gems}
+        if self.slot.relic_checks:
+            # A Relic item is that level's sapphire relic; gold bits are only the game's, while a time trial is open.
+            sapphires, golds = snap.sapphires, snap.golds
+            for level in RELIC_LEVELS:
+                sapphires = mirror(sapphires, "sapphires", level.lid, bool(received[level.relic_item]))
+                golds = mirror(golds, "golds", level.lid, False)
+            values["sapphires"], values["golds"] = sapphires, golds
+        return values
 
     def _sync_fields(self, snap: ram.Snapshot, received: Counter[str], checked: Collection[int],
                      actions: Actions) -> None:
         for name, value in self.desired(snap, received, checked).items():
-            current = _field(snap, name)
+            current = getattr(snap, name)
             if value == current:
                 continue
             if name == "crystals" and snap.hub_loading_or_in:

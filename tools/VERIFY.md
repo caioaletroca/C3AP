@@ -125,6 +125,22 @@ client, which never writes the boss field.
 | 29 | After test 28, take relics away again | do the secret levels close again (recomputed from the count) or stay open (a separate flag)? | |
 | 30 | Beat Cortex, then clear the Crash Dash bit (`POWERS` bit 4) in a level | Crash runs at normal speed (the bit really is the boots) | |
 
+## Round 7: v1.0 playtest
+
+Generate a seed with the default options plus `level_shuffle: all_rooms`, start a new game, connect the client.
+
+| # | Test | Expect | Result |
+|---|---|---|---|
+| 31 | Warp room 1 at the start | no crystals, gems or relics shown; buttons work | |
+| 32 | Finish a level normally | "<level> - Exit" and its crystal are sent | |
+| 33 | Finish a level whose ID is 0x20 or more (Orange Asphalt, Flaming Passion, Gone Tomorrow, Bug Lite) | its exit is sent (the "level completed" field is 8 bytes) | |
+| 34 | Receive a level's Crystal item (`/send` or a found item) | that level's button shows its crystal | |
+| 35 | Win a time trial (with Crash Dash received, or a ride level) | Sapphire (and Gold) relic checks; the pause menu shows only received Relic items | |
+| 36 | Hold 5 Relic items | secret warp room pad appears; Ski Crazed's slot opens | |
+| 37 | Enter secret pad 27 or 29 with level shuffle on | the secret route of Hang 'em High / Future Frenzy loads, not the shuffled level (**the client may redirect it**) | |
+| 38 | Win a gem path gem other than Bone Yard's, or a race gem | the client logs "Learned a gem bit"; report the bit | |
+| 39 | Beat Cortex | the goal is sent (with the goal items held) | |
+
 ## What each test unlocks
 
 - 1: the client recognizes the game (`SERIAL_KNOWN_OFFSETS` in `client.py`).

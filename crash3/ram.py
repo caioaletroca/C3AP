@@ -30,7 +30,9 @@ LIFE_COUNT = 0x80068F58        # OK: lives << 8 (index 24); the level writes it 
 HEALTH = 0x80068F5C            # OK: Aku Aku masks << 8 (index 25); same as lives (writes inside a level are lost)
 FRUIT_COUNT = 0x80068F60       # OK: index 26, synced on level exit
 LEVELS_COMPLETED = 0x80068F64  # OK: index 27, bit = level ID, set back in the warp room after a normal finish
-                               # (Tiny = bit 6, High Time = bit 26); a boss's bit opens the next room's fence
+                               # (Tiny = bit 6, High Time = bit 26); a boss's bit opens the next room's fence.
+                               # VERIFY: read as 8 bytes like the other bitfields, since level IDs go up to 0x27
+LEVELS_COMPLETED_SIZE = 8
 HUB_AREA = 0x80068FA4          # ❌ index 43 was 0x13 in room 1, 0x14 in room 2, but it changes too often (not the room)
 GEMS = 0x80068FB0              # OK: gem bitfield, 8 bytes; set in the warp room ~200 frames after the level
 CRYSTALS = 0x8006912C          # OK: crystal bitfield, 6 bytes; set in the warp room ~200 frames after the level
@@ -40,7 +42,7 @@ GOLD_RELICS = 0x800691BC       # OK: gold relic bitfield, 8 bytes, bit = level I
 # OK: a platinum relic is the sapphire bit AND the gold bit of the level (pause menu + warp room button). Only the
 # best tier is stored: sapphire only = Sapphire, gold only = Gold, both = Platinum.
 RELICS_SIZE = 8
-GLOBALS_END = POWERS + 4
+GLOBALS_END = GOLD_RELICS + RELICS_SIZE
 GLOBALS_SIZE = GLOBALS_END - GLOBALS_START
 
 # Engine state (DECOMP)
@@ -71,19 +73,25 @@ MAX_LIVES = 99 * UNIT
 # Bits. Crystal and box-gem bits are indexed by level ID: OK for Toad Village (bit 11 in both), the rest VERIFY.
 # Bits that are not known yet are None; the client then neither writes nor watches them.
 CRYSTAL_BIT_BY_LID: dict[int, int] = {}      # filled below: bit = level ID (VERIFY)
-CLEAR_GEM_BIT_BY_LID: dict[int, int] = {}    # filled below: bit = level ID (VERIFY)
+CLEAR_GEM_BIT_BY_LID: dict[int, int] = {}    # filled below: bit = level ID (OK: GEMS bits 10-39 all count as gems,
+                                             # the 30 level IDs 0x0A-0x27 of the main and secret levels)
 PATH_GEM_BIT_BY_LID: dict[int, int | None] = {}
 """Second (gem path) clear gem: Bone Yard = bit 1 (OK, won in game); Tomb Time, Dino Might!, Sphynxinator,
 Gone Tomorrow, Bug Lite unknown (low bits, test with the V key)"""
+RACE_GEM_BIT_BY_LID: dict[int, int | None] = {0x25: None, 0x1F: None}
+"""Area 51? and Rings of Power's race gem: unknown (bits 0 and 40 are gems from unknown levels; 48-55 untested)"""
+KNOWN_GEM_BITS_EXTRA: frozenset[int] = frozenset({0, 40})
+"""Gem bits whose level is unknown yet (the client learns unknown gem bits as they appear, see watcher.py)"""
 COLORED_GEM_BITS: dict[str, int | None] = {"Red": 58, "Green": 59, "Purple": 60, "Blue": 61, "Yellow": 62}
 """Bit in GEMS of each colored gem (OK: pause menu with the J key in tools/c3ap_ram_watch.lua; Purple and Blue also
 won in game). Same order as data.Gem."""
 
 
 def _fill_level_bits() -> None:
-    from .data import MAIN_LEVELS, PATH_GEM_LEVELS
+    from .data import GEM_LEVELS, MAIN_LEVELS, PATH_GEM_LEVELS
     for level in MAIN_LEVELS:
         CRYSTAL_BIT_BY_LID[level.lid] = level.lid
+    for level in GEM_LEVELS:
         CLEAR_GEM_BIT_BY_LID[level.lid] = level.lid
     for level in PATH_GEM_LEVELS:
         PATH_GEM_BIT_BY_LID[level.lid] = None
@@ -110,6 +118,10 @@ class Snapshot:
     scene_request: int
     hub_area: int = 0
     levels_completed: int = 0
+    sapphires: int = 0
+    """64-bit sapphire relic field (bit = level ID)"""
+    golds: int = 0
+    """64-bit gold relic field; platinum = both bits"""
 
     @property
     def in_hub(self) -> bool:
@@ -175,7 +187,9 @@ def parse(globals_block: bytes, scene_block: bytes) -> Snapshot:
         scene_id=_word(scene_block, SCENE_BLOCK, SCENE_ID),
         scene_request=_word(scene_block, SCENE_BLOCK, SCENE_REQUEST),
         hub_area=g(HUB_AREA),
-        levels_completed=g(LEVELS_COMPLETED),
+        levels_completed=_bytes_le(globals_block, GLOBALS_START, LEVELS_COMPLETED, LEVELS_COMPLETED_SIZE),
+        sapphires=_bytes_le(globals_block, GLOBALS_START, SAPPHIRE_RELICS, RELICS_SIZE),
+        golds=_bytes_le(globals_block, GLOBALS_START, GOLD_RELICS, RELICS_SIZE),
     )
 
 

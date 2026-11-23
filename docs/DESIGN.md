@@ -65,8 +65,22 @@ Same scheme as C1AP, which has been verified live there.
 
 ## Target design (v1.0, C2AP style)
 
-Agreed with the project owner on 2026-11-22. v0.1 above is the first step towards it; most of the jump depends on
-VERIFY rounds 6-7.
+Agreed with the project owner on 2026-11-22. **Built on 2026-11-22** (VERIFY round 7 is its playtest). The v0.1
+sections above are history; where they differ, this section wins. What v1.0 does beyond the plan below:
+
+- Items: one per level and kind (crystal, clear gem, gem path gem, race gem, relic), item IDs from the level ID.
+  Crash Dash is an item. The goal is read from Cortex's "level completed" bit, so the powers can all be items.
+- `level_shuffle` is `vanilla` / `within_rooms` / `all_rooms` (old `true` = within rooms).
+- Relic items set their level's sapphire bit. While a level is active, its sapphire and gold bits are held at 0 until
+  every relic tier enabled for it is checked.
+- Unknown gem bits (five gem path gems, both race gems) are learned: in a level with exactly one open unknown gem, a
+  gem bit no known gem owns appearing is that gem; the client logs the bit.
+- The "level completed" field is read as 8 bytes (level IDs reach 0x27). VERIFY for IDs of 32 and up.
+- Hot Coco and Eggipus Rex wait for a later version (owner), so there are 28 relics, not 30.
+- Gem logic: until the per-level power table exists, a gem needs every power a vanilla player has in the level's own
+  warp room (tied to the level, so shuffle stays honest).
+- Without `relic_checks`, Hang 'em High's Yellow Gem and Future Frenzy's clear gem (behind secret pads 27 and 29) are
+  left out; their items stay.
 
 **Shuffle.** The 25 main levels are shuffled across all warp rooms. The 5 secret levels and the 5 bosses stay in place.
 

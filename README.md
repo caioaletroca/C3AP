@@ -4,35 +4,43 @@ An [Archipelago](https://archipelago.gg) world (apworld) and BizHawk client for 
 1998), NTSC-U version (SCUS-94244).
 
 Archipelago is a multi-game randomizer: the items of every game in a session are shuffled across all the players'
-worlds. In Crash Bandicoot 3, collecting crystals and gems and beating bosses sends items to other players (or to
-yourself), and the crystals, powers and colored gems come back to you as items.
+worlds. In Crash Bandicoot 3, finishing levels, collecting crystals, gems and relics and beating bosses sends items
+to other players (or to yourself), and the crystals, gems, relics and powers come back to you as items.
 
-> **Status: pre-alpha, not playable yet.** The world generates, but none of the client's RAM addresses have been
-> confirmed in an emulator. The checklist is in [tools/VERIFY.md](tools/VERIFY.md). Sister project of
+> **Status: alpha.** Most of the RAM map is confirmed in BizHawk; the v1.0 features (per-level items, exits, relics,
+> secret levels) still need a full playtest. The checklist is in [tools/VERIFY.md](tools/VERIFY.md). Sister project of
 > [C1AP](https://github.com/caioaletroca/C1AP).
 
 ## What is randomized?
 
-- **Crystals.** Each warp room's boss opens with five more crystals, as in the game, but the crystals are items.
-- **Powers.** Super Body Slam, Double Jump, Death Tornado Spin and Fruit Bazooka are items. Beating a boss is a check.
+- **Crystals, gems and relics are items, one per level**, as in C2AP: "Toad Village Crystal", "Toad Village Clear
+  Gem", "Toad Village Relic". Each one turns on its own level in the game. The bosses open at a total of 5, 10, 15, 20
+  and 25 crystals, and the secret warp room at 5, 10, 15, 20 and 25 relics, as in the game.
+- **Powers.** Super Body Slam, Double Jump, Death Tornado Spin, Fruit Bazooka and Crash Dash are items.
 - **Colored gems** (with *Gem Checks*). Red, Green, Purple, Blue and Yellow are items that open their gem paths.
-- **Level shuffle** (optional). Changes which level each warp room button leads to, within its room.
+- **Level shuffle** (optional). Changes which level each warp room button leads to, within its room or across all
+  rooms. Bosses and secret levels stay in place.
 - **Filler.** Extra lives and Aku Aku masks.
 - **Traps** (optional). *No Lives Trap*: you play your next level with 0 lives, then they come back in the warp room.
 
-The locations are each main level's crystal, the four boss defeats and (with *Gem Checks*) the clear gems, the gem
-path clear gems and four colored gems: 64 in total.
+The locations are each level's normal exit and crystal, the four boss defeats, and optionally every gem (*Gem
+Checks*) and the Sapphire and Gold relics (*Relic Checks*, plus Platinum with *Platinum Relics*). The secret levels
+Ski Crazed, Area 51? and Rings of Power are included with *Relic Checks*. With the defaults there are 154 checks
+(182 with platinum).
 
 ## Goal
 
-Defeat Dr. N. Cortex.
+Defeat Dr. N. Cortex. With the `goal` option you can also need every gem item, every relic item, or both (105%).
 
 ## Options
 
 | Option | Values | Default |
 |---|---|---|
-| `gem_checks` | `true` / `false`: gems are locations, colored gems are items | `true` |
-| `level_shuffle` | `true` / `false` | `false` |
+| `goal` | `cortex`, `cortex_all_gems`, `cortex_all_relics`, `cortex_105` | `cortex` |
+| `gem_checks` | `true` / `false`: gems are checks and items | `true` |
+| `relic_checks` | `true` / `false`: Sapphire and Gold relics are checks, relics are items, secret levels included | `true` |
+| `platinum_relics` | `true` / `false`: Platinum relics are checks too | `false` |
+| `level_shuffle` | `vanilla`, `within_rooms`, `all_rooms` | `vanilla` |
 | `trap_chance` | 0-100: % of filler replaced by a No Lives Trap | 0 |
 | `death_link` | `true` / `false` | `false` |
 
@@ -63,7 +71,10 @@ The full guides are the [setup guide](crash3/docs/setup_en.md) and the
 - Only the NTSC-U version (SCUS-94244) is supported.
 - The RAM map is unconfirmed (see the status note above).
 - Death Link only sends deaths.
-- Time trials, relics, the secret levels and the Yellow Gem's location are not included yet.
+- Hot Coco and Eggipus Rex (the secret-exit levels) are not included yet.
+- Five gem path gems and the two race gems have unknown RAM bits: the client learns them when you win them and asks
+  you to report the bit.
+- Gem logic uses the powers you would have in the level's own warp room, which is stricter than needed.
 - Avoid loading save states in the middle of a level.
 
 ## Development
@@ -83,7 +94,7 @@ AP_TEST_WORLDS=crash3 python -m pytest worlds/crash3/test test/general
 |---|---|
 | `crash3/data.py` | Levels, bosses, powers, gems (static game data) |
 | `crash3/world.py` | The Archipelago world: regions, items, rules, slot data |
-| `crash3/shuffle.py` | Level-order shuffle |
+| `crash3/shuffle.py` | Level-order shuffle (within rooms or across all rooms) |
 | `crash3/ram.py` | RAM map (addresses marked `VERIFY` are unconfirmed) |
 | `crash3/watcher.py` | Client game logic, pure and unit-tested |
 | `crash3/trap.py` | No Lives Trap state |

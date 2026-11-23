@@ -17,6 +17,9 @@ class Kind(Enum):
     BOSS = "boss"
     FINAL_BOSS = "final_boss"
     SECRET = "secret"
+    """Opened from the secret warp room by the relic count"""
+    SECRET_EXIT = "secret_exit"
+    """Hot Coco and Eggipus Rex: reached through another level's secret exit (not in v1.0 yet)"""
 
 
 class Gem(Enum):
@@ -50,6 +53,63 @@ class Level:
     """The colored gem found in this level"""
     path_powers: tuple[str, ...] = ()
     """Powers the gem path needs beyond what the warp room already requires (owner, BizHawk)"""
+    pad_relics: int = 0
+    """Secret levels: relics that open their secret warp room pad"""
+    gem_relics: int = 0
+    """Relics needed for this level's gem, reached through a secret warp room pad (Hang 'em High's Yellow Gem = pad
+    27, Future Frenzy's clear gem = pad 29)"""
+    race_gem: bool = False
+    """Secret levels with a second clear gem for first place in the race"""
+
+    @property
+    def in_v1(self) -> bool:
+        return self.kind != Kind.SECRET_EXIT
+
+    @property
+    def has_crystal(self) -> bool:
+        return self.kind == Kind.LEVEL
+
+    @property
+    def has_relic(self) -> bool:
+        """Has a time trial: every main and secret level"""
+        return self.kind in (Kind.LEVEL, Kind.SECRET, Kind.SECRET_EXIT)
+
+    @property
+    def relic_needs_dash(self) -> bool:
+        return self.number not in RELIC_WITHOUT_DASH
+
+    @property
+    def exit_location(self) -> str:
+        return f"{self.name} - Exit"
+
+    @property
+    def race_gem_location(self) -> str:
+        return f"{self.name} - Race Clear Gem"
+
+    def relic_location(self, tier: str) -> str:
+        return f"{self.name} - {tier} Relic"
+
+    # Items (one per level and kind, like C2AP: each turns on its own level's bit)
+
+    @property
+    def crystal_item(self) -> str:
+        return f"{self.name} Crystal"
+
+    @property
+    def clear_gem_item(self) -> str:
+        return f"{self.name} Clear Gem"
+
+    @property
+    def path_gem_item(self) -> str:
+        return f"{self.name} Gem Path Clear Gem"
+
+    @property
+    def race_gem_item(self) -> str:
+        return f"{self.name} Race Clear Gem"
+
+    @property
+    def relic_item(self) -> str:
+        return f"{self.name} Relic"
 
     @property
     def is_boss(self) -> bool:
@@ -88,7 +148,7 @@ LEVELS: tuple[Level, ...] = (
     Level("Makin' Waves", 0x19, 5, 1),
     # Warp room 2
     Level("Gee Wiz", 0x0F, 6, 2),
-    Level("Hang 'em High", 0x16, 7, 2),  # the Yellow Gem is behind a secret-warp-room entrance (not in v0.1)
+    Level("Hang 'em High", 0x16, 7, 2, colored_gem=Gem.YELLOW, gem_relics=10),  # Yellow Gem: secret pad 27
     Level("Hog Ride", 0x15, 8, 2),
     Level("Tomb Time", 0x12, 9, 2, path_gem=(Gem.PURPLE,)),
     Level("Midnight Run", 0x11, 10, 2),
@@ -102,7 +162,7 @@ LEVELS: tuple[Level, ...] = (
     Level("Sphynxinator", 0x1E, 16, 4, path_gem=(Gem.BLUE,)),
     Level("Bye Bye Blimps", 0x13, 17, 4),
     Level("Tell No Tales", 0x0D, 18, 4),
-    Level("Future Frenzy", 0x1B, 19, 4),  # its second gem uses a secret-warp-room entrance (not in v0.1)
+    Level("Future Frenzy", 0x1B, 19, 4, gem_relics=20),  # its clear gem: secret pad 29
     Level("Tomb Wader", 0x18, 20, 4, colored_gem=Gem.BLUE),
     # Warp room 5
     Level("Gone Tomorrow", 0x23, 21, 5, path_gem=(Gem.GREEN,)),
@@ -116,15 +176,16 @@ LEVELS: tuple[Level, ...] = (
     Level("N. Tropy", 0x04, 0, 3, Kind.BOSS),
     Level("N. Gin", 0x05, 0, 4, Kind.BOSS),
     Level("Dr. N. Cortex", 0x07, 0, 5, Kind.FINAL_BOSS),
-    # Secret warp room: not in v0.1. Its pad slots open with the relic count (BizHawk: live, 5 per slot, the pad at
+    # Secret warp room. Its pad slots open with the relic count (BizHawk: live, 5 per slot, the pad at
     # 5): 26 Ski Crazed (5), 27 = Hang 'em High's second entry, to the Yellow Gem (10), 28 Area 51? (15), 29 = Future
     # Frenzy's second entry, to its gem (20), 30 Rings of Power (25). Hot Coco (Road Crash's alien sign) and Eggipus Rex
     # (Dino Might!'s Yellow Gem path, second pterodactyl) are secret exits.
-    Level("Ski Crazed", 0x21, 26, 6, Kind.SECRET),
-    Level("Area 51?", 0x25, 28, 6, Kind.SECRET),
-    Level("Rings of Power", 0x1F, 30, 6, Kind.SECRET),
-    Level("Hot Coco", 0x27, 31, 6, Kind.SECRET),
-    Level("Eggipus Rex", 0x26, 32, 6, Kind.SECRET),
+    # No crystals there: clear gems (all boxes; Area 51? and Rings of Power also first place in the race) and a relic.
+    Level("Ski Crazed", 0x21, 26, 6, Kind.SECRET, pad_relics=5),
+    Level("Area 51?", 0x25, 28, 6, Kind.SECRET, pad_relics=15, race_gem=True),
+    Level("Rings of Power", 0x1F, 30, 6, Kind.SECRET, pad_relics=25, race_gem=True),
+    Level("Hot Coco", 0x27, 31, 6, Kind.SECRET_EXIT),
+    Level("Eggipus Rex", 0x26, 32, 6, Kind.SECRET_EXIT),
 )
 
 LEVEL_BY_NAME: dict[str, Level] = {level.name: level for level in LEVELS}
@@ -135,19 +196,15 @@ LEVELS_PER_ROOM = 5
 MAIN_LEVELS: tuple[Level, ...] = tuple(level for level in LEVELS if level.kind == Kind.LEVEL)
 RELIC_WITHOUT_DASH: frozenset[int] = frozenset({3, 5, 8, 14, 17, 18, 22, 24, 26, 28, 30})
 """Level numbers whose time trial (relic) doesn't need Crash Dash: the ride levels (owner). Hot Coco (31) unknown."""
-SECRET_GEMS: dict[int, tuple[str, ...]] = {26: ("Boxes",), 28: ("Boxes", "Race"), 30: ("Race", "Boxes")}
+SECRET_LEVELS: tuple[Level, ...] = tuple(level for level in LEVELS if level.kind == Kind.SECRET)
 """Secret levels 26/28/30 have no crystal: only clear gems (all boxes; first place in the race) and a relic (wiki
-guides). 25 box gems + 6 path gems + these 5 = 36 of the 40 clear gems, so Hot Coco and Eggipus Rex likely hold the
-other 4 (unverified; GEMS bits 0 and 40 are gems from an unknown level)."""
-SECRET_PAD_RELICS: dict[int, int] = {26: 5, 27: 10, 28: 15, 29: 20, 30: 25}
-"""Secret warp room pad slot (vanilla number) -> relics needed (BizHawk). 27 and 29 are second entries to Hang 'em High
-and Future Frenzy."""
+guides, owner). 25 box gems + 6 path gems + these 5 = 36 of the 40 clear gems; Hot Coco and Eggipus Rex hold the rest."""
+GEM_LEVELS: tuple[Level, ...] = MAIN_LEVELS + SECRET_LEVELS
+"""Levels with a box clear gem in v1.0"""
+RELIC_LEVELS: tuple[Level, ...] = tuple(level for level in LEVELS if level.has_relic and level.in_v1)
 BOSSES: tuple[Level, ...] = tuple(level for level in LEVELS if level.kind == Kind.BOSS)
 FINAL_BOSS: Level = LEVEL_BY_NAME["Dr. N. Cortex"]
 BOSS_BY_ROOM: dict[int, Level] = {level.room: level for level in LEVELS if level.is_boss}
-CRYSTAL_COUNT = len(MAIN_LEVELS)
-CRYSTALS_PER_BOSS = LEVELS_PER_ROOM
-"""Each warp room's boss button needs that room's five crystals (VERIFY: per room, or a running total)"""
 
 
 @dataclass(frozen=True)
@@ -166,9 +223,10 @@ POWERS: tuple[Power, ...] = (
     Power("Fruit Bazooka", "N. Gin", 3),
     Power("Crash Dash", "Dr. N. Cortex", 4),
 )
+CRASH_DASH = "Crash Dash"
 POWER_BY_BOSS: dict[str, Power] = {power.boss: power for power in POWERS}
-ITEM_POWERS: tuple[Power, ...] = tuple(power for power in POWERS if power.boss != FINAL_BOSS.name)
-"""Powers that are items. Crash Dash comes from Cortex, after the goal, so the game keeps handing it out itself."""
+ITEM_POWERS: tuple[Power, ...] = POWERS
+"""Every power is an item, Crash Dash included (the goal is read from the "level completed" field, not the powers)"""
 
 
 def powers_before_room(room: int) -> tuple[Power, ...]:
@@ -178,8 +236,11 @@ def powers_before_room(room: int) -> tuple[Power, ...]:
 
 PATH_GEM_LEVELS: tuple[Level, ...] = tuple(level for level in MAIN_LEVELS if level.path_gem)
 COLORED_GEM_LEVELS: tuple[Level, ...] = tuple(level for level in MAIN_LEVELS if level.colored_gem is not None)
+RACE_GEM_LEVELS: tuple[Level, ...] = tuple(level for level in SECRET_LEVELS if level.race_gem)
 
 assert len(MAIN_LEVELS) == WARP_ROOMS * LEVELS_PER_ROOM
 assert all(sum(1 for level in MAIN_LEVELS if level.room == room) == LEVELS_PER_ROOM for room in range(1, 6))
 assert [level.number for level in MAIN_LEVELS] == list(range(1, 26))
 assert len(LEVEL_BY_LID) == len(LEVELS), "level IDs must be unique"
+assert len(COLORED_GEM_LEVELS) == len(COLORED_GEMS)
+assert len(RELIC_LEVELS) == 28  # Hot Coco and Eggipus Rex's relics come later
