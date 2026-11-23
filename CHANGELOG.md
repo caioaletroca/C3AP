@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.2](https://github.com/caioaletroca/C3AP/compare/v0.5.1...v0.5.2) (2026-11-23)
+
+
+### Bug Fixes
+
+* return to the button's warp room after finishing a shuffled level ([8b8db65](https://github.com/caioaletroca/C3AP/commit/8b8db65c215d10b55168fdcb568d6a3cf9fa839b))
+
 ## [0.5.1](https://github.com/caioaletroca/C3AP/compare/v0.5.0...v0.5.1) (2026-11-23)
 
 
