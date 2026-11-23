@@ -29,7 +29,7 @@ Ownership rules (docs/DESIGN.md):
 """
 from collections import Counter
 from collections.abc import Collection
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 
 from . import ram
 from .data import (
@@ -132,6 +132,9 @@ class Watcher:
         self.redirected_to: int | None = None
         """Level we last asked the loader for, so its load isn't redirected again"""
         self.redirect_arrived = False
+        self.pending_finish: tuple[int, int, bool] | None = None
+        """(level played, its button, button's bit already set) after a normal finish of a shuffled level, until the
+        game sets the button's "level completed" bit back in the warp room and the client moves it to the level"""
         """The level in ``redirected_to`` has loaded; only then may a return to the warp room forget it"""
         self.known_gem_bits: set[int] = {
             *ram.CLEAR_GEM_BIT_BY_LID.values(),
@@ -160,6 +163,7 @@ class Watcher:
             self.level = None
         # else: keep the level just played, whose rewards land in the warp room
 
+        snap = self._move_completed_bit(snap, actions)
         self._detect_checks(snap, previous, received, checked, actions)
         if self.crystal_grace:
             self.crystal_grace -= 1
@@ -190,14 +194,12 @@ class Watcher:
         if previous is None or previous.on_title:
             return
 
-        # Exits and bosses: the game's own "level completed" field (never written by the client). Any set bit whose
-        # location is unchecked counts, so they are also sent after a client restart. The game sets the bit of the
-        # level in LAST_LEVEL, which the client points at the button (_fix_return), so a main level's bit means "the
-        # level behind that button was finished".
+        # Exits and bosses: the game's own "level completed" field. Any set bit whose location is unchecked counts, so
+        # they are also sent after a client restart. With level shuffle the client moves the bit the game sets (the
+        # button's) to the level played (_move_completed_bit), so a bit always means "this level was finished".
         for level in (*EXIT_LEVELS, *BOSSES):
             if _bit_set(snap.levels_completed, level.lid):
-                finished = LEVEL_BY_LID[self.button_target.get(level.lid, level.lid)]
-                self._send(finished.defeat_location if finished.is_boss else finished.exit_location, checked, actions)
+                self._send(level.defeat_location if level.is_boss else level.exit_location, checked, actions)
         if _bit_set(snap.levels_completed, FINAL_BOSS.lid) and all(received[name] for name in self.slot.goal_items):
             actions.goal = True
 
@@ -353,6 +355,34 @@ class Watcher:
             address, size = FIELDS[name]
             actions.writes[address] = (value, size)
             actions.guards[address] = (current, size)
+
+    def _move_completed_bit(self, snap: ram.Snapshot, actions: Actions) -> ram.Snapshot:
+        """A normal finish sets the "level completed" bit of LAST_LEVEL, which _fix_return points at the button
+        (BizHawk: Gee Wiz behind Under Pressure's button set bit 14). The game reads a level's own bit, for example to
+        offer its time trial (BizHawk: no clock in Gee Wiz), so move the bit to the level played. The button's bit is
+        kept if its own level had already been finished. Returns the snapshot as it will be after the write."""
+        level = self.level
+        if (self.pending_finish is None and level is not None and level.lid in self.home_button
+                and snap.gamestate == ram.GAMESTATE_LEVEL_DONE):
+            button = self.home_button[level.lid]
+            self.pending_finish = (level.lid, button, _bit_set(snap.levels_completed, button))
+        if self.pending_finish is None:
+            return snap
+        played, button, button_was_set = self.pending_finish
+        if snap.level not in (played, ram.LID_WARP_ROOM, ram.LID_TRANSITION):
+            self.pending_finish = None  # another level loaded: give up
+            return snap
+        if not (snap.in_hub and _bit_set(snap.levels_completed, button)):
+            return snap  # the game hasn't set it yet
+        self.pending_finish = None
+        value = snap.levels_completed | 1 << played
+        if not button_was_set:
+            value &= ~(1 << button)
+        if value == snap.levels_completed:
+            return snap
+        actions.writes[ram.LEVELS_COMPLETED] = (value, ram.LEVELS_COMPLETED_SIZE)
+        actions.guards[ram.LEVELS_COMPLETED] = (snap.levels_completed, ram.LEVELS_COMPLETED_SIZE)
+        return replace(snap, levels_completed=value)
 
     def _fix_return(self, snap: ram.Snapshot, actions: Actions) -> None:
         """Back in the warp room, Crash spawns at the button of the level in LAST_LEVEL, which the game sets to the

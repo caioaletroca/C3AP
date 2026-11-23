@@ -463,11 +463,25 @@ class TestLevelShuffle(WatcherTest):
         self.step(replace(HUB, last_level=lid("Toad Village")))
         self.assertNotIn(ram.LAST_LEVEL, self.actions.writes)
 
-    def test_button_bit_is_the_shuffled_levels_exit(self) -> None:
-        # The game sets the bit of LAST_LEVEL, now the button (Toad Village's), after finishing Under Pressure.
-        self.step(HUB)
-        self.step(replace(HUB, levels_completed=1 << lid("Toad Village")))
+    def finish_under_pressure(self, before: int = 0) -> None:
+        # Toad Village's button loads Under Pressure; the game then sets the bit of LAST_LEVEL, the button's.
+        level = self.step(self.in_level("Under Pressure", last_level=lid("Under Pressure"), levels_completed=before))
+        self.step(replace(level, gamestate=ram.GAMESTATE_LEVEL_DONE))
+        self.step(replace(HUB, levels_completed=before))
+        self.step(replace(HUB, levels_completed=before | 1 << lid("Toad Village")))
+
+    def test_completed_bit_moves_to_the_level_played(self) -> None:
+        self.finish_under_pressure()
+        self.assertEqual(self.written(ram.LEVELS_COMPLETED), 1 << lid("Under Pressure"))
         self.assertEqual(self.actions.locations, {loc("Under Pressure - Exit")})
+
+    def test_button_bit_kept_if_its_level_was_finished(self) -> None:
+        # Toad Village was finished before, so its bit is already set: the move happens on the first warp room poll.
+        before = 1 << lid("Toad Village")
+        level = self.step(self.in_level("Under Pressure", last_level=lid("Under Pressure"), levels_completed=before))
+        self.step(replace(level, gamestate=ram.GAMESTATE_LEVEL_DONE))
+        self.step(replace(HUB, levels_completed=before))
+        self.assertEqual(self.written(ram.LEVELS_COMPLETED), before | 1 << lid("Under Pressure"))
 
     def test_unshuffled_last_level_is_left_alone(self) -> None:
         self.step(replace(HUB, last_level=lid("Orient Express")))
