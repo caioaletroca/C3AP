@@ -1,5 +1,12 @@
 # Changelog
 
+# [0.4.0](https://github.com/caioaletroca/C3AP/compare/v0.3.1...v0.4.0) (2026-11-23)
+
+
+### Features
+
+* v1.0 design, per-level items, exits, relics, secret levels, goal option ([af39d17](https://github.com/caioaletroca/C3AP/commit/af39d177709538780b56e9751a21f31491ea02b1))
+
 ## [0.3.1](https://github.com/caioaletroca/C3AP/compare/v0.3.0...v0.3.1) (2026-11-22)
 
 
