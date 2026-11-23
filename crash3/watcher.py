@@ -120,6 +120,8 @@ class Watcher:
             vanilla.lid: target for vanilla, target in zip(MAIN_LEVELS, slot.level_order) if vanilla.lid != target
         }
         """Vanilla level ID of a button -> level it should load (only buttons that changed)"""
+        self.home_button: dict[int, int] = {target: button for button, target in self.button_target.items()}
+        """Shuffled level ID -> vanilla level ID of the button that leads to it"""
         self.previous: ram.Snapshot | None = None
         self.level: Level | None = None
         """Level or boss Crash is in, or played last while back in the warp room"""
@@ -163,6 +165,7 @@ class Watcher:
             self.crystal_grace = CRYSTAL_GRACE_POLLS
         self._sync_fields(snap, received, set(checked) | actions.locations, actions)
         self._redirect_level(snap, actions)
+        self._fix_return(snap, actions)
 
         # Every respawn after a death bumps RESPAWN_COUNT; it drops back to 0 in the warp room.
         if (previous is not None and not previous.on_title and not snap.in_hub and snap.level == previous.level
@@ -345,6 +348,18 @@ class Watcher:
             address, size = FIELDS[name]
             actions.writes[address] = (value, size)
             actions.guards[address] = (current, size)
+
+    def _fix_return(self, snap: ram.Snapshot, actions: Actions) -> None:
+        """After a normal finish the warp room spawns Crash at the button of the level in LAST_LEVEL, which the game
+        sets to the level just played (BizHawk). For a shuffled level, point it at the button that leads there, so
+        Crash comes back to the warp room he left. Never while that level is still being played."""
+        button = self.home_button.get(snap.last_level)
+        if button is None:
+            return
+        leaving = snap.gamestate in (ram.GAMESTATE_LEVEL_DONE, ram.GAMESTATE_QUIT) or snap.hub_loading_or_in
+        if leaving or snap.level != snap.last_level:
+            actions.writes[ram.LAST_LEVEL] = (button << 8, 4)
+            actions.guards[ram.LAST_LEVEL] = (snap.last_level << 8, 4)
 
     def _redirect_level(self, snap: ram.Snapshot, actions: Actions) -> None:
         """Level shuffle: load the shuffled level instead of the button's vanilla one.

@@ -431,6 +431,18 @@ class TestLevelShuffle(WatcherTest):
         self.step(self.in_level("Under Pressure"))
         self.assertNotIn(ram.SCENE_REQUEST, self.actions.writes, "our own redirect is not redirected again")
 
+    def test_normal_finish_returns_to_the_button(self) -> None:
+        # Toad Village's button loads Under Pressure: after a normal finish the game sets LAST_LEVEL to Under Pressure,
+        # and the warp room would spawn Crash at Under Pressure's own button.
+        level = self.step(self.in_level("Under Pressure", last_level=lid("Under Pressure")))
+        self.assertNotIn(ram.LAST_LEVEL, self.actions.writes, "not while the level is played")
+        self.step(replace(level, gamestate=ram.GAMESTATE_LEVEL_DONE))
+        self.assertEqual(self.written(ram.LAST_LEVEL), lid("Toad Village") << 8)
+
+    def test_unshuffled_last_level_is_left_alone(self) -> None:
+        self.step(replace(HUB, last_level=lid("Orient Express")))
+        self.assertNotIn(ram.LAST_LEVEL, self.actions.writes)
+
     def test_unchanged_buttons_are_left_alone(self) -> None:
         self.step(HUB)
         self.step(self.in_level("Orient Express"))

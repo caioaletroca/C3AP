@@ -26,6 +26,8 @@ GLOBALS_START = 0x80068EF8
 LEVEL = 0x80068EF8             # OK: current level ID << 8 (index 0); follows SCENE_ID ~345 frames later
 RESPAWN_COUNT = 0x80068F0C     # OK: index 5, +0x100 per respawn, back to 0 in the warp room
 GAMESTATE = 0x80068F3C         # OK: index 17, see GAMESTATE_* below
+LAST_LEVEL = 0x80068F48        # OK: index 20, level ID << 8 of the level played last; after a normal finish the warp
+                               # room spawns Crash at that level's button (probe G, BizHawk)
 LIFE_COUNT = 0x80068F58        # OK: lives << 8 (index 24); the level writes it back on exit, warp room writes carry in
 HEALTH = 0x80068F5C            # OK: Aku Aku masks << 8 (index 25); same as lives (writes inside a level are lost)
 FRUIT_COUNT = 0x80068F60       # OK: index 26, synced on level exit
@@ -118,6 +120,8 @@ class Snapshot:
     scene_request: int
     hub_area: int = 0
     levels_completed: int = 0
+    last_level: int = 0
+    """LAST_LEVEL >> 8"""
     sapphires: int = 0
     """64-bit sapphire relic field (bit = level ID)"""
     golds: int = 0
@@ -187,6 +191,7 @@ def parse(globals_block: bytes, scene_block: bytes) -> Snapshot:
         scene_id=_word(scene_block, SCENE_BLOCK, SCENE_ID),
         scene_request=_word(scene_block, SCENE_BLOCK, SCENE_REQUEST),
         hub_area=g(HUB_AREA),
+        last_level=g(LAST_LEVEL) >> 8,
         levels_completed=_bytes_le(globals_block, GLOBALS_START, LEVELS_COMPLETED, LEVELS_COMPLETED_SIZE),
         sapphires=_bytes_le(globals_block, GLOBALS_START, SAPPHIRE_RELICS, RELICS_SIZE),
         golds=_bytes_le(globals_block, GLOBALS_START, GOLD_RELICS, RELICS_SIZE),
