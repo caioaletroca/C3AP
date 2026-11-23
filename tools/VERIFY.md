@@ -164,6 +164,12 @@ Generate a seed with the default options plus `level_shuffle: all_rooms`, start 
 
 ## Results log
 
+**Round 7b (secret exits, seed with Dino Might! behind Double Header's button):** ✅ `/send` of "Hot Coco Clear Gem" and
+"Eggipus Rex Clear Gem" set GEMS bits 39 and 38 and raised the pause menu's gem count. ✅ Dino Might!'s Yellow Gem path
+leaves with GAMESTATE 0x400 and loads scene 0x26; "Eggipus Rex - Entered" was sent, and its gem bit is held at 0 inside
+so the game can award it. ✅ The client caught the button's request during the intro cutscene (0x1D swapped to 0x10),
+so no double load. Not checked yet: finishing either level (exit bit, return spot), Hot Coco's entry, their relics.
+
 **Round 7 (cross-room shuffle, Gee Wiz behind Under Pressure's button):** ✅ a normal finish returns Crash to the
 button he used once the client rewrites LAST_LEVEL (0x80068F48); ✅ re-entry loads the shuffled level, with or without
 the intro cutscene; ✅ the client moves the "level completed" bit from the button (bit 14) to the level played (bit 15).
