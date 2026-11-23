@@ -131,11 +131,11 @@ Generate a seed with the default options plus `level_shuffle: all_rooms`, start 
 
 | # | Test | Expect | Result |
 |---|---|---|---|
-| 31 | Warp room 1 at the start | no crystals, gems or relics shown; buttons work | |
-| 32 | Finish a level normally | "<level> - Exit" and its crystal are sent | |
+| 31 | Warp room 1 at the start | no crystals, gems or relics shown; buttons work | ✅ |
+| 32 | Finish a level normally | "<level> - Exit" and its crystal are sent; back at the button you used | ✅ (Gee Wiz behind Under Pressure's button) |
 | 33 | Finish a level whose ID is 0x20 or more (Orange Asphalt, Flaming Passion, Gone Tomorrow, Bug Lite) | its exit is sent (the "level completed" field is 8 bytes) | |
 | 34 | Receive a level's Crystal item (`/send` or a found item) | that level's button shows its crystal | |
-| 35 | Win a time trial (with Crash Dash received, or a ride level) | Sapphire (and Gold) relic checks; the pause menu shows only received Relic items | |
+| 35 | Win a time trial (with Crash Dash and the level's Crystal item received, or a ride level) | Sapphire (and Gold) relic checks; the pause menu shows only received Relic items | |
 | 36 | Hold 5 Relic items | secret warp room pad appears; Ski Crazed's slot opens | |
 | 37 | Enter secret pad 27 or 29 with level shuffle on | the secret route of Hang 'em High / Future Frenzy loads, not the shuffled level (**the client may redirect it**) | |
 | 38 | Win a gem path gem other than Bone Yard's, or a race gem | the client logs "Learned a gem bit"; report the bit | |
@@ -158,6 +158,13 @@ Generate a seed with the default options plus `level_shuffle: all_rooms`, start 
 - 30: Crash Dash as an item.
 
 ## Results log
+
+**Round 7 (cross-room shuffle, Gee Wiz behind Under Pressure's button):** ✅ a normal finish returns Crash to the
+button he used once the client rewrites LAST_LEVEL (0x80068F48); ✅ re-entry loads the shuffled level, with or without
+the intro cutscene; ✅ the client moves the "level completed" bit from the button (bit 14) to the level played (bit 15).
+✅ **The time trial clock needs the level's crystal:** no clock in Gee Wiz after finishing it while the client held its
+crystal bit off; the clock appeared right after `/send ... Gee Wiz Crystal`. Relic logic now needs the Crystal item.
+Not checked: the clock in the secret levels (no crystal) after a finish.
 
 **Round 2b (owner's warp room test, from a new game):** all five warp rooms sit in one place; a room's buttons
 appear with a transition when Crash walks up to it. Writing crystals (`O`):
