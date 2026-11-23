@@ -55,8 +55,8 @@ class Level:
     """Colored gems needed for every box, so for the box clear gem (their paths hold boxes)"""
     gem_powers: tuple[str, ...] = ()
     """Powers needed for every gem of this level (owner's rule: none in warp rooms 1-2 and the ride levels, Double
-    Jump in High Time, Super Body Slam in Dino Might!, Death Tornado Spin in warp room 4, Fruit Bazooka in warp room
-    5)"""
+    Jump in High Time, Super Body Slam in Dino Might!, Death Tornado Spin in warp room 4, Fruit Bazooka in Gone Tomorrow
+    and Flaming Passion)"""
     second_gem_name: str = "Gem Path Clear Gem"
     colored_gem: Gem | None = None
     """The colored gem found in this level"""
@@ -182,7 +182,7 @@ LEVELS: tuple[Level, ...] = (
     Level("Orange Asphalt", 0x20, 22, 5),
     Level("Flaming Passion", 0x22, 23, 5, colored_gem=Gem.GREEN, gem_powers=("Fruit Bazooka",)),
     Level("Mad Bombers", 0x17, 24, 5),
-    Level("Bug Lite", 0x24, 25, 5, second_gem=True, path_gem=ALL_COLORS, gem_powers=("Fruit Bazooka",)),
+    Level("Bug Lite", 0x24, 25, 5, second_gem=True, path_gem=ALL_COLORS),  # no powers (owner)
     # Bosses: the sixth button of each warp room
     Level("Tiny Tiger", 0x06, 0, 1, Kind.BOSS),
     Level("Dingodile", 0x03, 0, 2, Kind.BOSS),
