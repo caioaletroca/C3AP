@@ -133,7 +133,7 @@ Generate a seed with the default options plus `level_shuffle: all_rooms`, start 
 |---|---|---|---|
 | 31 | Warp room 1 at the start | no crystals, gems or relics shown; buttons work | ✅ |
 | 32 | Finish a level normally | "<level> - Exit" and its crystal are sent; back at the button you used | ✅ (Gee Wiz behind Under Pressure's button) |
-| 33 | Finish a level whose ID is 0x20 or more (Orange Asphalt, Flaming Passion, Gone Tomorrow, Bug Lite) | its exit is sent (the "level completed" field is 8 bytes) | |
+| 33 | Finish a level whose ID is 0x20 or more (Orange Asphalt, Flaming Passion, Gone Tomorrow, Bug Lite) | its exit is sent (the "level completed" field is 8 bytes) | ✅ Flaming Passion behind Tell No Tales's button |
 | 34 | Receive a level's Crystal item (`/send` or a found item) | that level's button shows its crystal | |
 | 35 | Win a time trial (with Crash Dash and the level's Crystal item received, or a ride level) | Sapphire (and Gold) relic checks; the pause menu shows only received Relic items | |
 | 36 | Hold 5 Relic items | secret warp room pad appears; Ski Crazed's slot opens | |
@@ -163,6 +163,10 @@ Generate a seed with the default options plus `level_shuffle: all_rooms`, start 
 - 30: Crash Dash as an item.
 
 ## Results log
+
+**Round 7d (ID 0x20+, Flaming Passion behind Tell No Tales's button):** ✅ the request was swapped during the intro
+cutscene (0x0D -> 0x22), 1F0 cleared on arrival; after a normal finish the game set bit 13 (Tell No Tales) and the
+client moved it to bit 34 (0x22) within ~9 frames; "Flaming Passion - Exit" and "- Crystal" were sent.
 
 **Round 7c (secret pads, Hang 'em High behind Hog Ride's button, its own button loads Toad Village):** ❌ first try:
 pad 27 asked for 0x16 without touching 0x800691F0; the client missed the request, then its fallback took the loaded
