@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.1](https://github.com/caioaletroca/C3AP/compare/v0.6.0...v0.6.1) (2026-11-23)
+
+
+### Bug Fixes
+
+* leave the secret warp room pads' requests alone ([93cd929](https://github.com/caioaletroca/C3AP/commit/93cd929cffbb35a7ddbbef45a0162ae864cb8aac))
+
 # [0.6.0](https://github.com/caioaletroca/C3AP/compare/v0.5.6...v0.6.0) (2026-11-23)
 
 
