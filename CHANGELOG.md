@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.1](https://github.com/caioaletroca/C3AP/compare/v0.5.0...v0.5.1) (2026-11-23)
+
+
+### Bug Fixes
+
+* Bug Lite's gems need no powers ([62be406](https://github.com/caioaletroca/C3AP/commit/62be4063d19d28cc12f801fe4e227dd73d75c9fa))
+
 # [0.5.0](https://github.com/caioaletroca/C3AP/compare/v0.4.0...v0.5.0) (2026-11-23)
 
 
