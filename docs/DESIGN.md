@@ -118,7 +118,10 @@ each received level Relic item; the game then opens the secret
 levels by itself. The secret warp room's pad slots open at 5, 10, 15, 20 and 25 relics (owner, BizHawk; the center pad appears at 5):
 26 Ski Crazed, 27 Hang 'em High's second entry (to the Yellow Gem), 28 Area 51?, 29 Future Frenzy's second entry (to
 its gem), 30 Rings of Power. Hot Coco (Road Crash's alien sign) and Eggipus Rex (Dino Might!'s Yellow Gem path) are
-secret exits, not relic-gated. Relics need Crash Dash except in the ride levels 3, 5, 8, 14, 17, 18, 22, 24, 26, 28,
+secret exits, not relic-gated. A main level's time trial clock only appears once you own its crystal, as in the
+game: the client keeps a level's crystal bit off until its Crystal item arrives, so relic checks need that item in logic
+(BizHawk: no clock in Gee Wiz after finishing it, clock right after receiving the Gee Wiz Crystal). Relics need Crash
+Dash except in the ride levels 3, 5, 8, 14, 17, 18, 22, 24, 26, 28,
 30 (owner); Hot Coco unknown. Secret levels 26, 28 and 30 have no crystal, only clear gems and a relic: Ski Crazed
 one (all boxes), Area 51? and Rings of Power two each (all boxes; first in the race). The other 4 clear gems are
 probably Hot Coco's and Eggipus Rex's (to check). A level's own

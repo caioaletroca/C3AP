@@ -60,10 +60,20 @@ class TestRoomGates(Crash3TestBase):
         self.assertTrue(self.can_reach_location("Bug Lite - Gem Path Clear Gem"))
 
     def test_relics_need_crash_dash_except_rides(self) -> None:
+        self.collect_by_name(["Toad Village Crystal", "Orient Express Crystal"])
         self.assertFalse(self.can_reach_location("Toad Village - Sapphire Relic"))
         self.assertTrue(self.can_reach_location("Orient Express - Gold Relic"), "a ride level")
         self.collect_by_name("Crash Dash")
         self.assertTrue(self.can_reach_location("Toad Village - Sapphire Relic"))
+
+    def test_relics_need_the_levels_crystal(self) -> None:
+        # The time trial clock only appears once the level's crystal is owned, as in the game (BizHawk: Gee Wiz).
+        self.collect_by_name("Crash Dash")
+        self.assertFalse(self.can_reach_location("Toad Village - Sapphire Relic"))
+        self.assertFalse(self.can_reach_location("Orient Express - Gold Relic"))
+        self.collect_by_name(["Toad Village Crystal", "Orient Express Crystal"])
+        self.assertTrue(self.can_reach_location("Toad Village - Sapphire Relic"))
+        self.assertTrue(self.can_reach_location("Orient Express - Gold Relic"))
 
     def test_secret_levels_follow_the_relic_count(self) -> None:
         relics = [level.relic_item for level in MAIN_LEVELS]

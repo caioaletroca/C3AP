@@ -25,7 +25,8 @@ to other players (or to yourself), and the crystals, gems, relics and powers com
 
 The locations are each level's normal exit and crystal, the four boss defeats, and optionally every gem (*Gem
 Checks*) and the Sapphire and Gold relics (*Relic Checks*, plus Platinum with *Platinum Relics*). The secret levels
-Ski Crazed, Area 51? and Rings of Power are included with *Relic Checks*. With the defaults there are 154 checks
+Ski Crazed, Area 51? and Rings of Power are included with *Relic Checks*. As in the game, a level's time trial clock
+only appears once you own its crystal, so its relics need its Crystal item. With the defaults there are 154 checks
 (182 with platinum).
 
 ## Goal

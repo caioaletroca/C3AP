@@ -116,8 +116,11 @@ class Crash3World(World):
 
     @staticmethod
     def relic_rule(level: Level) -> Rule[Any]:
-        """Time trials need Crash Dash, except in the ride levels (owner)"""
-        return Has(CRASH_DASH) if level.relic_needs_dash else True_()
+        """Time trials need Crash Dash, except in the ride levels (owner). As in the game, a main level's time trial
+        clock only appears once its crystal is owned (BizHawk: no clock in Gee Wiz until the Gee Wiz Crystal item came);
+        the secret levels have no crystal."""
+        rule: Rule[Any] = Has(CRASH_DASH) if level.relic_needs_dash else True_()
+        return rule & Has(level.crystal_item) if level.has_crystal else rule
 
     # Regions and locations
 

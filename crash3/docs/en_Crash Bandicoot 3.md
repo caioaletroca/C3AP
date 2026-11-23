@@ -32,6 +32,11 @@ Defeat Dr. N. Cortex. Depending on the `goal` option, you also need every gem it
 
 Relics need Crash Dash in logic, except in the ride levels.
 
+**Time trials need the level's crystal.** As in the original game, the time trial clock only appears in a level once
+you own its crystal. Here the crystal you pick up in a level is a check: you only keep it once that level's Crystal
+item arrives (from you or another player). Until then the level has no clock, so its relics are in logic only after
+"<Level> Crystal" is received. The secret levels have no crystal; their clock works as in the game.
+
 ## What does another world's item look like in Crash Bandicoot 3?
 
 The game shows nothing special. The item is sent as soon as the client sees the check.
