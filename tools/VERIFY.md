@@ -137,7 +137,7 @@ Generate a seed with the default options plus `level_shuffle: all_rooms`, start 
 | 34 | Receive a level's Crystal item (`/send` or a found item) | that level's button shows its crystal | |
 | 35 | Win a time trial (with Crash Dash and the level's Crystal item received, or a ride level) | Sapphire (and Gold) relic checks; the pause menu shows only received Relic items | |
 | 36 | Hold 5 Relic items | secret warp room pad appears; Ski Crazed's slot opens | |
-| 37 | Enter secret pad 27 or 29 with level shuffle on | the secret route of Hang 'em High / Future Frenzy loads, not the shuffled level (**the client may redirect it**) | |
+| 37 | Enter secret pad 27 or 29 with level shuffle on | the secret route of Hang 'em High / Future Frenzy loads, not the shuffled level (**the client may redirect it**) | ✅ pad 27 (after a fix) |
 | 38 | Win a gem path gem other than Bone Yard's, or a race gem | the client logs "Learned a gem bit"; report the bit | |
 | 39 | Beat Cortex | the goal is sent (with the goal items held) | |
 | 40 | Hit Road Crash's alien sign | "Hot Coco - Entered" is sent | ✅ |
@@ -163,6 +163,13 @@ Generate a seed with the default options plus `level_shuffle: all_rooms`, start 
 - 30: Crash Dash as an item.
 
 ## Results log
+
+**Round 7c (secret pads, Hang 'em High behind Hog Ride's button, its own button loads Toad Village):** ❌ first try:
+pad 27 asked for 0x16 without touching 0x800691F0; the client missed the request, then its fallback took the loaded
+Hang 'em High for its button and sent Crash to Toad Village, softlocked. ✅ After the fix (redirect only what matches
+the last button pressed, 0x800691F0, and clear it once a redirect lands): pad 27 loaded the secret route twice, before
+and after using Hog Ride's button; Hog Ride's button still loaded Hang 'em High (1F0 went 0x1500 -> 0 on arrival);
+every exit landed at Hog Ride's button. Pad 29 uses the same path (not tested).
 
 **Round 7b (secret exits, seed with Dino Might! behind Double Header's button):** ✅ `/send` of "Hot Coco Clear Gem" and
 "Eggipus Rex Clear Gem" set GEMS bits 39 and 38 and raised the pause menu's gem count. ✅ Dino Might!'s Yellow Gem path
