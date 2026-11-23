@@ -131,6 +131,8 @@ class Watcher:
         """Polls left during which the crystal total is not lowered in the warp room"""
         self.redirected_to: int | None = None
         """Level we last asked the loader for, so its load isn't redirected again"""
+        self.redirect_arrived = False
+        """The level in ``redirected_to`` has loaded; only then may a return to the warp room forget it"""
         self.known_gem_bits: set[int] = {
             *ram.CLEAR_GEM_BIT_BY_LID.values(),
             *(bit for bit in ram.PATH_GEM_BIT_BY_LID.values() if bit is not None),
@@ -372,16 +374,21 @@ class Watcher:
         """
         if not self.button_target:
             return
-        if snap.in_hub and snap.scene_request == ram.NO_SCENE:
+        # LEVEL lags the loaded scene by ~345 frames (BizHawk), so right after a swapped request LEVEL still reads
+        # "warp room": a redirect is only forgotten once its level was reached and Crash is back in the warp room.
+        if self.redirected_to is not None and snap.level == self.redirected_to:
+            self.redirect_arrived = True
+        if self.redirect_arrived and snap.hub_ready:
             self.redirected_to = None
+            self.redirect_arrived = False
         if snap.scene_request in self.button_target and snap.scene_request != self.redirected_to:
-            target = self.button_target[snap.scene_request]
-            actions.writes[ram.SCENE_REQUEST] = (target, 4)
-            actions.guards[ram.SCENE_REQUEST] = (snap.scene_request, 4)
-            self.redirected_to = target
+            self._ask_for(self.button_target[snap.scene_request], snap.scene_request, actions)
         elif (not snap.in_hub and snap.level in self.button_target and snap.level != self.redirected_to
               and snap.scene_request == ram.NO_SCENE):
-            target = self.button_target[snap.level]
-            actions.writes[ram.SCENE_REQUEST] = (target, 4)
-            actions.guards[ram.SCENE_REQUEST] = (ram.NO_SCENE, 4)
-            self.redirected_to = target
+            self._ask_for(self.button_target[snap.level], ram.NO_SCENE, actions)
+
+    def _ask_for(self, target: int, guard: int, actions: Actions) -> None:
+        actions.writes[ram.SCENE_REQUEST] = (target, 4)
+        actions.guards[ram.SCENE_REQUEST] = (guard, 4)
+        self.redirected_to = target
+        self.redirect_arrived = False

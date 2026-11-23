@@ -424,6 +424,22 @@ class TestLevelShuffle(WatcherTest):
         self.step(replace(cutscene, scene_request=lid("Toad Village")))
         self.assertEqual(self.written(ram.SCENE_REQUEST), lid("Under Pressure"))
 
+    def test_caught_level_is_not_redirected_again(self) -> None:
+        # BizHawk: the swap worked, but LEVEL still read "warp room" on the next poll; the client forgot the redirect
+        # and, when Under Pressure loaded, sent Crash on to the level behind Under Pressure's own button.
+        self.step(replace(HUB, scene_request=lid("Toad Village")))
+        self.step(HUB)                                   # LEVEL lags: still the warp room, request idle
+        self.step(replace(HUB, scene_id=lid("Under Pressure")))
+        self.step(self.in_level("Under Pressure"))
+        self.assertNotIn(ram.SCENE_REQUEST, self.actions.writes)
+
+    def test_next_visit_is_redirected_again(self) -> None:
+        self.step(replace(HUB, scene_request=lid("Toad Village")))
+        self.step(self.in_level("Under Pressure"))
+        self.step(HUB)
+        self.step(replace(HUB, scene_request=lid("Toad Village")))
+        self.assertEqual(self.written(ram.SCENE_REQUEST), lid("Under Pressure"))
+
     def test_missed_request_reloads(self) -> None:
         self.step(HUB)
         self.step(self.in_level("Toad Village"))
