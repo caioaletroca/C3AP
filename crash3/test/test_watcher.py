@@ -496,3 +496,20 @@ class TestLevelShuffle(WatcherTest):
         self.watcher = make_watcher()
         self.step(replace(HUB, scene_request=lid("Toad Village")))
         self.assertNotIn(ram.SCENE_REQUEST, self.actions.writes)
+
+
+class TestSecretExits(WatcherTest):
+    def test_entering_hot_coco_is_a_check(self) -> None:
+        self.step(self.in_level("Road Crash"))
+        self.assertFalse(self.actions.locations)
+        self.step(self.in_level("Hot Coco"))
+        self.assertEqual(self.actions.locations, {loc("Hot Coco - Entered")})
+
+    def test_finishing_eggipus_rex_is_its_exit(self) -> None:
+        self.step(self.in_level("Eggipus Rex"))
+        self.step(replace(HUB, levels_completed=1 << lid("Eggipus Rex")))
+        self.assertIn(loc("Eggipus Rex - Exit"), self.actions.locations)
+
+    def test_hot_coco_gem_is_masked(self) -> None:
+        self.step(self.in_level("Hot Coco", gems=1 << lid("Hot Coco")))
+        self.assertFalse(self.written(ram.GEMS) & 1 << lid("Hot Coco"), "held at 0 until its location is checked")

@@ -29,6 +29,10 @@ Defeat Dr. N. Cortex. Depending on the `goal` option, you also need every gem it
   relic straight away also sends the lower ones. The secret levels Ski Crazed, Area 51? and Rings of Power (exit,
   clear gems, relics), and the two gems behind the secret warp room (Hang 'em High's Yellow Gem, Future Frenzy's
   clear gem) are included.
+- Hot Coco and Eggipus Rex: entering each one is a check, and so are its exit, its gem (with *Gem Checks*) and its
+  relics (with *Relic Checks*). Hot Coco is behind Road Crash's alien sign and needs nothing else. Eggipus Rex is at
+  the end of Dino Might!'s Yellow Gem path, so it needs the Yellow Gem and is only included with *Gem Checks*. Both
+  follow their host level when levels are shuffled, and neither time trial needs Crash Dash.
 
 Relics need Crash Dash in logic, except in the ride levels.
 
@@ -49,7 +53,6 @@ the next time you are in a warp room, and carry into the next level.
 ## Known limitations
 
 - NTSC-U (SCUS-94244) only.
-- Hot Coco and Eggipus Rex are not included yet.
 - While you play a level, its own crystal, gem and relic are hidden so the game can award them; the warp room may
   count one less until you leave it.
 - Death Link only sends deaths.

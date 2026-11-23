@@ -140,6 +140,11 @@ Generate a seed with the default options plus `level_shuffle: all_rooms`, start 
 | 37 | Enter secret pad 27 or 29 with level shuffle on | the secret route of Hang 'em High / Future Frenzy loads, not the shuffled level (**the client may redirect it**) | |
 | 38 | Win a gem path gem other than Bone Yard's, or a race gem | the client logs "Learned a gem bit"; report the bit | |
 | 39 | Beat Cortex | the goal is sent (with the goal items held) | |
+| 40 | Hit Road Crash's alien sign | "Hot Coco - Entered" is sent | |
+| 41 | Break every box in Hot Coco and finish | "Hot Coco - Clear Gem" and "Hot Coco - Exit" are sent (bits 39) | |
+| 42 | Take Dino Might!'s Yellow Gem path to Eggipus Rex and finish | "Eggipus Rex - Entered", "- Clear Gem", "- Exit" (bits 38) | |
+| 43 | Win a Hot Coco or Eggipus Rex time trial | its relic checks are sent (relic bit = level ID) | |
+| 44 | Same with Road Crash or Dino Might! shuffled behind another button | the secret exit still works; the finish returns to that button | |
 
 ## What each test unlocks
 

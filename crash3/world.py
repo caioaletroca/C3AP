@@ -7,7 +7,7 @@ from worlds.AutoWorld import WebWorld, World
 
 from .data import (
     BOSS_BY_ROOM, COLORED_GEMS, CRASH_DASH, FINAL_BOSS, ITEM_POWERS, LEVEL_BY_LID, LEVELS_PER_ROOM, MAIN_LEVELS,
-    SECRET_LEVELS, WARP_ROOMS, Gem, Level,
+    SECRET_EXITS_BY_HOST, SECRET_LEVELS, WARP_ROOMS, Gem, Level,
 )
 from .items import (
     CRYSTALS_GROUP, DEFAULT_CLASSIFICATION, FILLER_WEIGHTS, GAME_NAME, GEMS_GROUP, NO_LIVES_TRAP, RELICS_GROUP,
@@ -151,7 +151,15 @@ class Crash3World(World):
             for level in SECRET_LEVELS:
                 self.add_secret_level(secret, level)
 
+    def secret_exit_levels(self) -> list[Level]:
+        """Hot Coco always; Eggipus Rex only with gem checks, since its entrance needs the Yellow Gem item"""
+        return [level for levels in SECRET_EXITS_BY_HOST.values() for level in levels
+                if self.options.gem_checks or not level.entry_gems]
+
     def add_level_locations(self, region: Region, level: Level) -> None:
+        for secret in SECRET_EXITS_BY_HOST.get(level.name, ()):
+            if secret in self.secret_exit_levels():
+                self.add_secret_exit(region, secret)
         # Every level can be finished, and its crystal taken, with no powers (owner).
         self.add_location(region, level.crystal_location)
         self.add_location(region, level.exit_location)
@@ -181,6 +189,16 @@ class Crash3World(World):
             self.set_rule(self.add_location(region, level.clear_gem_location), pad)
             if level.race_gem:
                 self.set_rule(self.add_location(region, level.race_gem_location), pad)
+
+    def add_secret_exit(self, region: Region, level: Level) -> None:
+        """Reached through the host level's secret exit, so from the warp room of the host's button (level shuffle
+        moves it with the host). Box gem, finish gem and relics need no powers (owner)."""
+        access = colors_rule(level.entry_gems)
+        self.set_rule(self.add_location(region, level.entry_location), access)
+        self.set_rule(self.add_location(region, level.exit_location), access)
+        if self.options.gem_checks:
+            self.set_rule(self.add_location(region, level.clear_gem_location), access)
+        self.add_relics(region, level, access)
 
     def add_relics(self, region: Region, level: Level, access: Rule[Any] | None = None) -> None:
         if not self.options.relic_checks:
@@ -219,8 +237,10 @@ class Crash3World(World):
             if self.options.relic_checks:
                 names += [level.clear_gem_item for level in SECRET_LEVELS]
                 names += [level.race_gem_item for level in SECRET_LEVELS if level.race_gem]
+        if self.options.gem_checks:
+            names += [level.clear_gem_item for level in self.secret_exit_levels()]
         if self.options.relic_checks:
-            names += [level.relic_item for level in (*MAIN_LEVELS, *SECRET_LEVELS)]
+            names += [level.relic_item for level in (*MAIN_LEVELS, *SECRET_LEVELS, *self.secret_exit_levels())]
         return names
 
     def goal_item_names(self) -> list[str]:

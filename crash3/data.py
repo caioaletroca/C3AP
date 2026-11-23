@@ -19,7 +19,7 @@ class Kind(Enum):
     SECRET = "secret"
     """Opened from the secret warp room by the relic count"""
     SECRET_EXIT = "secret_exit"
-    """Hot Coco and Eggipus Rex: reached through another level's secret exit (not in v1.0 yet)"""
+    """Hot Coco and Eggipus Rex: reached through another level's secret exit (their host)"""
 
 
 class Gem(Enum):
@@ -69,10 +69,10 @@ class Level:
     27, Future Frenzy's clear gem = pad 29)"""
     race_gem: bool = False
     """Secret levels with a second clear gem for first place in the race"""
-
-    @property
-    def in_v1(self) -> bool:
-        return self.kind != Kind.SECRET_EXIT
+    host: str = ""
+    """Secret-exit levels: the level whose secret exit leads here"""
+    entry_gems: tuple[Gem, ...] = ()
+    """Secret-exit levels: colored gems needed to reach the secret exit in the host level"""
 
     @property
     def has_crystal(self) -> bool:
@@ -90,6 +90,10 @@ class Level:
     @property
     def exit_location(self) -> str:
         return f"{self.name} - Exit"
+
+    @property
+    def entry_location(self) -> str:
+        return f"{self.name} - Entered"
 
     @property
     def race_gem_location(self) -> str:
@@ -197,8 +201,12 @@ LEVELS: tuple[Level, ...] = (
     Level("Ski Crazed", 0x21, 26, 6, Kind.SECRET, pad_relics=5),
     Level("Area 51?", 0x25, 28, 6, Kind.SECRET, pad_relics=15, race_gem=True),
     Level("Rings of Power", 0x1F, 30, 6, Kind.SECRET, pad_relics=25, race_gem=True),
-    Level("Hot Coco", 0x27, 31, 6, Kind.SECRET_EXIT),
-    Level("Eggipus Rex", 0x26, 32, 6, Kind.SECRET_EXIT),
+    # Secret exits (owner, BizHawk): Road Crash's alien sign loads Hot Coco (scene 0x27, with GAMESTATE 0x400 like a
+    # pause-menu exit); a finish there returns to Road Crash's button. Hot Coco: a box gem and a relic, needs nothing.
+    # Eggipus Rex: Dino Might!'s Yellow Gem path (Yellow Gem, no Super Body Slam); a gem for finishing (no boxes) and a
+    # relic. Neither time trial needs Crash Dash.
+    Level("Hot Coco", 0x27, 31, 6, Kind.SECRET_EXIT, host="Road Crash"),
+    Level("Eggipus Rex", 0x26, 32, 6, Kind.SECRET_EXIT, host="Dino Might!", entry_gems=(Gem.YELLOW,)),
 )
 
 LEVEL_BY_NAME: dict[str, Level] = {level.name: level for level in LEVELS}
@@ -207,14 +215,19 @@ LEVEL_BY_LID: dict[int, Level] = {level.lid: level for level in LEVELS}
 WARP_ROOMS = 5
 LEVELS_PER_ROOM = 5
 MAIN_LEVELS: tuple[Level, ...] = tuple(level for level in LEVELS if level.kind == Kind.LEVEL)
-RELIC_WITHOUT_DASH: frozenset[int] = frozenset({3, 5, 8, 14, 17, 18, 22, 24, 26, 28, 30})
-"""Level numbers whose time trial (relic) doesn't need Crash Dash: the ride levels (owner). Hot Coco (31) unknown."""
+RELIC_WITHOUT_DASH: frozenset[int] = frozenset({3, 5, 8, 14, 17, 18, 22, 24, 26, 28, 30, 31, 32})
+"""Level numbers whose time trial (relic) doesn't need Crash Dash: the ride levels, Hot Coco and Eggipus Rex (owner)"""
 SECRET_LEVELS: tuple[Level, ...] = tuple(level for level in LEVELS if level.kind == Kind.SECRET)
 """Secret levels 26/28/30 have no crystal: only clear gems (all boxes; first place in the race) and a relic (wiki
-guides, owner). 25 box gems + 6 path gems + these 5 = 36 of the 40 clear gems; Hot Coco and Eggipus Rex hold the rest."""
-GEM_LEVELS: tuple[Level, ...] = MAIN_LEVELS + SECRET_LEVELS
-"""Levels with a box clear gem in v1.0"""
-RELIC_LEVELS: tuple[Level, ...] = tuple(level for level in LEVELS if level.has_relic and level.in_v1)
+guides, owner). 25 box gems + 6 path gems + these 5 + Hot Coco's and Eggipus Rex's = 38 of the 40 clear gems."""
+SECRET_EXIT_LEVELS: tuple[Level, ...] = tuple(level for level in LEVELS if level.kind == Kind.SECRET_EXIT)
+SECRET_EXITS_BY_HOST: dict[str, tuple[Level, ...]] = {
+    host: tuple(level for level in SECRET_EXIT_LEVELS if level.host == host)
+    for host in {level.host for level in SECRET_EXIT_LEVELS}
+}
+GEM_LEVELS: tuple[Level, ...] = MAIN_LEVELS + SECRET_LEVELS + SECRET_EXIT_LEVELS
+"""Levels with a clear gem at bit = level ID (all boxes; Eggipus Rex's for finishing)"""
+RELIC_LEVELS: tuple[Level, ...] = tuple(level for level in LEVELS if level.has_relic)
 BOSSES: tuple[Level, ...] = tuple(level for level in LEVELS if level.kind == Kind.BOSS)
 FINAL_BOSS: Level = LEVEL_BY_NAME["Dr. N. Cortex"]
 BOSS_BY_ROOM: dict[int, Level] = {level.room: level for level in LEVELS if level.is_boss}
@@ -256,4 +269,5 @@ assert all(sum(1 for level in MAIN_LEVELS if level.room == room) == LEVELS_PER_R
 assert [level.number for level in MAIN_LEVELS] == list(range(1, 26))
 assert len(LEVEL_BY_LID) == len(LEVELS), "level IDs must be unique"
 assert len(COLORED_GEM_LEVELS) == len(COLORED_GEMS)
-assert len(RELIC_LEVELS) == 28  # Hot Coco and Eggipus Rex's relics come later
+assert len(RELIC_LEVELS) == 30
+assert all(level.host in LEVEL_BY_NAME for level in SECRET_EXIT_LEVELS)

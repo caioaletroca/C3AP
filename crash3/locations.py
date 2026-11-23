@@ -2,7 +2,7 @@ from BaseClasses import Location
 
 from .data import (
     BOSSES, COLORED_GEM_LEVELS, FINAL_BOSS, GEM_LEVELS, LEVELS, MAIN_LEVELS, PATH_GEM_LEVELS, RACE_GEM_LEVELS,
-    RELIC_LEVELS, SECRET_LEVELS,
+    RELIC_LEVELS, SECRET_EXIT_LEVELS, SECRET_LEVELS,
 )
 from .items import BASE_ID, GAME_NAME
 
@@ -25,8 +25,9 @@ COLORED_GEM_OFFSET = 0x300
 EXIT_OFFSET = 0x400
 RELIC_OFFSETS: dict[str, int] = {"Sapphire": 0x500, "Gold": 0x600, "Platinum": 0x700}
 RACE_GEM_OFFSET = 0x800
+ENTRY_OFFSET = 0x900
 
-EXIT_LEVELS = MAIN_LEVELS + SECRET_LEVELS
+EXIT_LEVELS = MAIN_LEVELS + SECRET_LEVELS + SECRET_EXIT_LEVELS
 
 location_name_to_id: dict[str, int] = {
     **{level.crystal_location: BASE_ID + CRYSTAL_OFFSET + level.lid for level in MAIN_LEVELS},
@@ -38,6 +39,7 @@ location_name_to_id: dict[str, int] = {
     **{level.relic_location(tier): BASE_ID + RELIC_OFFSETS[tier] + level.lid
        for level in RELIC_LEVELS for tier in RELIC_TIERS},
     **{level.race_gem_location: BASE_ID + RACE_GEM_OFFSET + level.lid for level in RACE_GEM_LEVELS},
+    **{level.entry_location: BASE_ID + ENTRY_OFFSET + level.lid for level in SECRET_EXIT_LEVELS},
 }
 
 
@@ -54,6 +56,7 @@ location_name_groups: dict[str, set[str]] = {
                   | {level.race_gem_location for level in RACE_GEM_LEVELS},
     "Colored Gems": {level.colored_gem_location for level in COLORED_GEM_LEVELS},
     "Relics": {level.relic_location(tier) for level in RELIC_LEVELS for tier in RELIC_TIERS},
-    "Secret Levels": {name for level in SECRET_LEVELS for name in level_location_names(level.name)},
+    "Secret Levels": {name for level in (*SECRET_LEVELS, *SECRET_EXIT_LEVELS)
+                      for name in level_location_names(level.name)},
     **{level.name: level_location_names(level.name) for level in LEVELS if level_location_names(level.name)},
 }

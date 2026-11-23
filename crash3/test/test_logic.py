@@ -117,3 +117,31 @@ class TestRelicGoal(Crash3TestBase):
         self.assertTrue(self.world.options.relic_checks)
         self.collect_all_but(["Rings of Power Relic", "Victory"])
         self.assertBeatable(False)
+
+
+class TestSecretExits(Crash3TestBase):
+    options = {"gem_checks": True, "relic_checks": True}
+
+    def test_hot_coco_needs_only_road_crash(self) -> None:
+        self.assertFalse(self.can_reach_location("Hot Coco - Entered"), "Road Crash is in warp room 3")
+        self.collect_by_name(crystal_items(10))
+        for name in ("Entered", "Exit", "Clear Gem", "Sapphire Relic", "Gold Relic"):
+            self.assertTrue(self.can_reach_location(f"Hot Coco - {name}"), name)
+
+    def test_eggipus_rex_needs_the_yellow_gem(self) -> None:
+        self.collect_by_name(crystal_items(10))
+        self.assertFalse(self.can_reach_location("Eggipus Rex - Entered"))
+        self.collect_by_name("Yellow Gem")
+        for name in ("Entered", "Exit", "Clear Gem", "Sapphire Relic", "Gold Relic"):
+            self.assertTrue(self.can_reach_location(f"Eggipus Rex - {name}"), name)
+
+
+class TestSecretExitsWithoutGems(Crash3TestBase):
+    options = {"gem_checks": False, "relic_checks": True}
+
+    def test_eggipus_rex_needs_gem_checks(self) -> None:
+        names = {location.name for location in self.multiworld.get_locations(self.player)}
+        self.assertIn("Hot Coco - Entered", names)
+        self.assertIn("Hot Coco - Sapphire Relic", names)
+        self.assertNotIn("Hot Coco - Clear Gem", names)
+        self.assertFalse(any(name.startswith("Eggipus Rex") for name in names))

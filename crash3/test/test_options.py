@@ -15,7 +15,7 @@ class TestCasual(Crash3TestBase):
     def test_only_crystals_exits_and_bosses(self) -> None:
         names = location_names(self)
         self.assertFalse(any("Gem" in name or "Relic" in name for name in names))
-        self.assertEqual(len(names), 25 + 25 + 4)
+        self.assertEqual(len(names), 25 + 25 + 4 + 2)  # + Hot Coco's entry and exit (Eggipus Rex needs gem checks)
         self.assertFalse(self.get_items_by_name("Red Gem"))
         self.assertFalse(self.get_items_by_name("Toad Village Relic"))
 
@@ -74,5 +74,5 @@ class TestPoolSize(Crash3TestBase):
         locations = [loc for loc in self.multiworld.get_locations(self.player) if loc.address is not None]
         items = [item for item in self.multiworld.itempool if item.player == self.player]
         self.assertEqual(len(locations), len(items))
-        # 25 crystals + 28 exits + 4 bosses + 36 clear gems + 5 colored gems + 28 * 2 relics
-        self.assertEqual(len(locations), 25 + 28 + 4 + 36 + 5 + 56)
+        # 25 crystals + 30 exits + 2 secret-exit entries + 4 bosses + 38 clear gems + 5 colored gems + 30 * 2 relics
+        self.assertEqual(len(locations), 25 + 30 + 2 + 4 + 38 + 5 + 60)

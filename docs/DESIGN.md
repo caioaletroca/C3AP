@@ -76,7 +76,14 @@ sections above are history; where they differ, this section wins. What v1.0 does
 - Unknown gem bits (five gem path gems, both race gems) are learned: in a level with exactly one open unknown gem, a
   gem bit no known gem owns appearing is that gem; the client logs the bit.
 - The "level completed" field is read as 8 bytes (level IDs reach 0x27). VERIFY for IDs of 32 and up.
-- Hot Coco and Eggipus Rex wait for a later version (owner), so there are 28 relics, not 30.
+- Hot Coco and Eggipus Rex (secret exits, owner + BizHawk): entry, exit, clear gem and relics are checks, 30 relics in
+  all. Hot Coco (0x27) is behind Road Crash's alien sign (GAMESTATE 0x400 then scene 0x27; a finish returns to Road
+  Crash's button) and needs nothing; its gem is the box gem. Eggipus Rex (0x26) is behind Dino Might!'s Yellow Gem path
+  (Yellow Gem only, no Super Body Slam); its gem is for finishing (no boxes). Its locations exist only with gem checks,
+  since the Yellow Gem is only an item then. Their region is the host's button's warp room. Exit, gem and relic bits
+  are assumed to be the level ID like the others (VERIFY: bits 38-39 of the 8-byte fields).
+- The client only writes the gem and relic bits of locations the seed has, so a gem or relic that isn't a check stays
+  vanilla (secret levels' gems without relic checks, Eggipus Rex without gem checks).
 - Gem powers (owner's rule, 2026-11-22, data.Level.gem_powers): no powers for gems in warp rooms 1-2 and in the
   ride levels; in warp room 3 only High Time (Double Jump) and Dino Might! (Super Body Slam, its bonus round); Death
   Tornado Spin for the other warp room 4 levels, Fruit Bazooka for Gone Tomorrow and Flaming Passion (Bug Lite needs
@@ -122,9 +129,9 @@ secret exits, not relic-gated. A main level's time trial clock only appears once
 game: the client keeps a level's crystal bit off until its Crystal item arrives, so relic checks need that item in logic
 (BizHawk: no clock in Gee Wiz after finishing it, clock right after receiving the Gee Wiz Crystal). Relics need Crash
 Dash except in the ride levels 3, 5, 8, 14, 17, 18, 22, 24, 26, 28,
-30 (owner); Hot Coco unknown. Secret levels 26, 28 and 30 have no crystal, only clear gems and a relic: Ski Crazed
-one (all boxes), Area 51? and Rings of Power two each (all boxes; first in the race). The other 4 clear gems are
-probably Hot Coco's and Eggipus Rex's (to check). A level's own
+30, and in Hot Coco and Eggipus Rex (owner). Secret levels 26, 28 and 30 have no crystal, only clear gems and a relic:
+Ski Crazed one (all boxes), Area 51? and Rings of Power two each (all boxes; first in the race). Hot Coco and Eggipus
+Rex have one each, so 38 of the 40 clear gems are known. A level's own
 sapphire and gold bits are held at 0 while it is the active level, so the game can award the relic; what it awards
 (sapphire bit, gold bit, both = platinum) gives that level's relic checks, lower tiers included.
 

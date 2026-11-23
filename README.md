@@ -25,9 +25,10 @@ to other players (or to yourself), and the crystals, gems, relics and powers com
 
 The locations are each level's normal exit and crystal, the four boss defeats, and optionally every gem (*Gem
 Checks*) and the Sapphire and Gold relics (*Relic Checks*, plus Platinum with *Platinum Relics*). The secret levels
-Ski Crazed, Area 51? and Rings of Power are included with *Relic Checks*. As in the game, a level's time trial clock
-only appears once you own its crystal, so its relics need its Crystal item. With the defaults there are 154 checks
-(182 with platinum).
+Ski Crazed, Area 51? and Rings of Power are included with *Relic Checks*. The secret-exit levels count too: entering
+Hot Coco (Road Crash's alien sign) and Eggipus Rex (Dino Might!'s Yellow Gem path, with *Gem Checks* only) is a check,
+and so are their exit, gem and relics. As in the game, a level's time trial clock only appears once you own its
+crystal, so its relics need its Crystal item. With the defaults there are 164 checks (194 with platinum).
 
 ## Goal
 
@@ -72,7 +73,6 @@ The full guides are the [setup guide](crash3/docs/setup_en.md) and the
 - Only the NTSC-U version (SCUS-94244) is supported.
 - The RAM map is unconfirmed (see the status note above).
 - Death Link only sends deaths.
-- Hot Coco and Eggipus Rex (the secret-exit levels) are not included yet.
 - Four gem path gems, Future Frenzy's second gem and the two race gems have unknown RAM bits: the client learns
   them when you win them and asks you to report the bit.
 - Avoid loading save states in the middle of a level.

@@ -34,7 +34,7 @@ from dataclasses import dataclass, field, replace
 from . import ram
 from .data import (
     BOSSES, COLORED_GEMS, FINAL_BOSS, GEM_LEVELS, ITEM_POWERS, LEVEL_BY_LID, MAIN_LEVELS, PATH_GEM_LEVELS,
-    RACE_GEM_LEVELS, RELIC_LEVELS, SECRET_LEVELS, Level,
+    RACE_GEM_LEVELS, RELIC_LEVELS, SECRET_EXIT_LEVELS, SECRET_LEVELS, Kind, Level,
 )
 from .locations import RELIC_TIERS, location_name_to_id
 
@@ -44,7 +44,7 @@ our own Crystal, the item arrives from the server meanwhile and no reload is nee
 WARP_ROOM_STEP = 5
 """Warp room states change at every 5 crystals (boss buttons at 5, 10, 15, 20, 25)"""
 ITEM_POWER_MASK = sum(1 << power.bit for power in ITEM_POWERS)
-EXIT_LEVELS: tuple[Level, ...] = MAIN_LEVELS + SECRET_LEVELS
+EXIT_LEVELS: tuple[Level, ...] = MAIN_LEVELS + SECRET_LEVELS + SECRET_EXIT_LEVELS
 
 
 def crystal_stage(crystals: int) -> int:
@@ -158,7 +158,7 @@ class Watcher:
 
         level = LEVEL_BY_LID.get(snap.level)
         if level is not None:
-            self.level = level if level.in_v1 else None
+            self.level = level
         elif not (snap.in_hub or snap.level == ram.LID_TRANSITION):
             self.level = None
         # else: keep the level just played, whose rewards land in the warp room
@@ -205,6 +205,10 @@ class Watcher:
 
         if self.level is None:
             return
+
+        # Hot Coco and Eggipus Rex: reaching them through the host level's secret exit is a check.
+        if self.level.kind == Kind.SECRET_EXIT and snap.level == self.level.lid and not snap.in_hub:
+            self._send(self.level.entry_location, checked, actions)
 
         # Masked bits: held at 0 last poll, so 0 -> 1 means the game just awarded it.
         for mask in self.masked:
@@ -318,11 +322,15 @@ class Watcher:
         if self.slot.gem_checks:
             gems = snap.gems
             for level in GEM_LEVELS:
-                gems = mirror(gems, "gems", ram.CLEAR_GEM_BIT_BY_LID[level.lid], bool(received[level.clear_gem_item]))
+                if self.exists(level.clear_gem_location):
+                    gems = mirror(gems, "gems", ram.CLEAR_GEM_BIT_BY_LID[level.lid],
+                                  bool(received[level.clear_gem_item]))
             for level in PATH_GEM_LEVELS:
                 gems = mirror(gems, "gems", ram.PATH_GEM_BIT_BY_LID.get(level.lid), bool(received[level.path_gem_item]))
             for level in RACE_GEM_LEVELS:
-                gems = mirror(gems, "gems", ram.RACE_GEM_BIT_BY_LID.get(level.lid), bool(received[level.race_gem_item]))
+                if self.exists(level.race_gem_location):
+                    gems = mirror(gems, "gems", ram.RACE_GEM_BIT_BY_LID.get(level.lid),
+                                  bool(received[level.race_gem_item]))
             for gem in COLORED_GEMS:
                 gems = mirror(gems, "gems", ram.COLORED_GEM_BITS[gem.value], bool(received[gem.item_name]))
             values["gems"] = gems
@@ -331,6 +339,8 @@ class Watcher:
             # A Relic item is that level's sapphire relic; gold bits are only the game's, while a time trial is open.
             sapphires, golds = snap.sapphires, snap.golds
             for level in RELIC_LEVELS:
+                if not self.exists(level.relic_location(RELIC_TIERS[0])):
+                    continue
                 sapphires = mirror(sapphires, "sapphires", level.lid, bool(received[level.relic_item]))
                 golds = mirror(golds, "golds", level.lid, False)
             values["sapphires"], values["golds"] = sapphires, golds
