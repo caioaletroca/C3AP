@@ -140,11 +140,11 @@ Generate a seed with the default options plus `level_shuffle: all_rooms`, start 
 | 37 | Enter secret pad 27 or 29 with level shuffle on | the secret route of Hang 'em High / Future Frenzy loads, not the shuffled level (**the client may redirect it**) | |
 | 38 | Win a gem path gem other than Bone Yard's, or a race gem | the client logs "Learned a gem bit"; report the bit | |
 | 39 | Beat Cortex | the goal is sent (with the goal items held) | |
-| 40 | Hit Road Crash's alien sign | "Hot Coco - Entered" is sent | |
+| 40 | Hit Road Crash's alien sign | "Hot Coco - Entered" is sent | ✅ |
 | 41 | Break every box in Hot Coco and finish | "Hot Coco - Clear Gem" and "Hot Coco - Exit" are sent (bits 39) | |
-| 42 | Take Dino Might!'s Yellow Gem path to Eggipus Rex and finish | "Eggipus Rex - Entered", "- Clear Gem", "- Exit" (bits 38) | |
-| 43 | Win a Hot Coco or Eggipus Rex time trial | its relic checks are sent (relic bit = level ID) | |
-| 44 | Same with Road Crash or Dino Might! shuffled behind another button | the secret exit still works; the finish returns to that button | |
+| 42 | Take Dino Might!'s Yellow Gem path to Eggipus Rex and finish | "Eggipus Rex - Entered", "- Clear Gem", "- Exit" (bits 38) | ✅ |
+| 43 | Win a Hot Coco or Eggipus Rex time trial | its relic checks are sent (relic bit = level ID) | ✅ Eggipus Rex |
+| 44 | Same with Road Crash or Dino Might! shuffled behind another button | the secret exit still works; the finish returns to that button | ✅ (Hot Coco via the pause menu) |
 
 ## What each test unlocks
 
@@ -171,8 +171,11 @@ so the game can award it. ✅ The client caught the button's request during the 
 so no double load. ✅ Finishing Eggipus Rex sent "Eggipus Rex - Exit" and "- Clear Gem" (the gem bit came back in
 the warp room). ✅ Its time trial clock was there on a state saved before the first finish, and winning Gold sent the
 Sapphire and Gold relics without Crash Dash. Crystal-less levels offer the time trial from the first visit (owner,
-also per a guide for Hot Coco: relic and gem are independent), so their relics need no extra item. Not checked yet:
-the return spot after a secret-exit finish, Hot Coco's entry and exit.
+also per a guide for Hot Coco: relic and gem are independent), so their relics need no extra item. ✅ Road Crash behind Dino Might!'s
+button: the alien sign loaded Hot Coco and "Hot Coco - Entered" was sent; its gem bit was held at 0 inside. Leaving
+Hot Coco through the pause menu returned Crash to Dino Might!'s button (the button used), since the client rewrote
+LAST_LEVEL when Road Crash was left through the sign. Not checked (owner: done, same path as Eggipus Rex): Hot Coco's
+normal finish and its relics.
 
 **Round 7 (cross-room shuffle, Gee Wiz behind Under Pressure's button):** ✅ a normal finish returns Crash to the
 button he used once the client rewrites LAST_LEVEL (0x80068F48); ✅ re-entry loads the shuffled level, with or without
